@@ -1,0 +1,113 @@
+﻿//---------------------------------------------------------------------------
+
+#pragma hdrstop
+
+#include "SocketServerNet.h"
+//---------------------------------------------------------------------------
+#pragma package(smart_init)
+/*
+SocketServerNet.cpp
+*/
+#include "SocketServerNet.h"
+
+CServerNet::CServerNet()
+{}
+
+CServerNet::~CServerNet()
+{}
+
+SocketStatus CServerNet::Init(String address,int port )
+{
+    SocketStatus rlt = SocketError;
+
+    //ÓÃÓÚ¼ÇÂ¼´íÎóÐÅÏ¢£¬²¢Êä³ö
+    int iErrorMsg;
+
+    //³õÊ¼»¯WinSock
+    WSAData wsaData;
+    iErrorMsg = WSAStartup(MAKEWORD(1,1),&wsaData);
+
+    if (iErrorMsg != NO_ERROR)
+    {
+        //³õÊ¼»¯WinSockÊ§°Ü
+
+        rlt = SocketError;
+        return rlt;
+    }
+
+    //´´½¨·þÎñ¶ËSocket
+    m_sock = socket(AF_INET,SOCK_STREAM,0);
+    if (m_sock == INVALID_SOCKET)
+    {
+        //´´½¨SocketÒì³£
+        rlt = SocketError;
+        return rlt;
+    }
+
+    //ÉùÃ÷ÐÅÏ¢
+    sockaddr_in serverAddr;
+    serverAddr.sin_family = AF_INET;
+    serverAddr.sin_port = htons(port);
+    serverAddr.sin_addr.s_addr = inet_addr(AnsiString(address).c_str());
+
+    //°ó¶¨
+    iErrorMsg = bind(m_sock,(sockaddr*)&serverAddr,sizeof(serverAddr));
+    if (iErrorMsg < 0)
+    {
+        //°ó¶¨Ê§°Ü
+        rlt = SocketError;
+        return rlt;
+    }
+    return SocketOk;
+}
+
+void CServerNet::Run()
+{
+    //¹«¿ªÁ¬½Ó
+    sockaddr_in tcpAddr;
+    int len = sizeof(sockaddr_in);
+    SOCKET newSocket;
+    char buf[1024];
+    int rval;
+
+    do
+    {
+        //½ÓÊÕÐÅÏ¢
+        newSocket = accept(m_sock,(sockaddr*)&tcpAddr,&len);
+
+        if (newSocket == INVALID_SOCKET)
+        {
+            //·Ç¿ÉÓÃsocket
+            printf("unuseful socket");
+        }
+        else
+        {
+            //ÐÂsocketÁ¬½Ó
+            printf("new socket connect : %d\n",newSocket);
+            //ÏûÏ¢´¦Àí
+            do
+            {
+                printf("process\n");
+                //½ÓÊÕÊý¾Ý
+                memset(buf,0,sizeof(buf));
+                rval = recv(newSocket,buf,1024,0);
+                if (rval == SOCKET_ERROR)
+                    //ÕâÓ¦¸ÃÊÇ¸öÒì³££¬µ±¿Í»§¶ËÃ»ÓÐµ÷ÓÃcloseSocket¾ÍÖ±½ÓÍË³öÓÎÏ·µÄÊ±ºò£¬½«»á½øÈëÕâÀï
+                    printf("recv socket error\n");
+                if (rval == 0)
+                    //recv·µ»Ø0±íÊ¾Õý³£ÍË³ö
+                    printf("ending connection");
+                else
+                    //ÏÔÊ¾½ÓÊÕµ½µÄÊý¾Ý
+                    printf("recv %s\n",buf);
+            }while(rval != 0);
+
+            //¹Ø±Õ¶ÔÓ¦AcceptµÄsocket
+            closesocket(newSocket);
+        }
+
+    } while (1);
+
+    //¹Ø±Õ×ÔÉíµÄSocket
+    closesocket(m_sock);
+}

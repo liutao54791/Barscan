@@ -1,0 +1,44 @@
+inherited DialogGroupEdit: TDialogGroupEdit
+  Caption = #25195#30721#26538#32452#32534#36753
+  ClientHeight = 94
+  ClientWidth = 432
+  ExplicitWidth = 438
+  ExplicitHeight = 123
+  PixelsPerInch = 96
+  TextHeight = 12
+  inherited PanelButton: TPanel
+    Top = 53
+    Width = 432
+    inherited cxButtonOk: TcxButton
+      Left = 112
+      Top = 6
+      ExplicitLeft = 112
+      ExplicitTop = 6
+    end
+  end
+  object Panel1: TPanel
+    Left = 0
+    Top = 0
+    Width = 432
+    Height = 53
+    Align = alClient
+    TabOrder = 1
+    ExplicitLeft = 136
+    ExplicitTop = 16
+    ExplicitWidth = 185
+    ExplicitHeight = 41
+    object cxTextEditGroup: TcxTextEdit
+      Left = 136
+      Top = 17
+      TabOrder = 0
+      Width = 249
+    end
+    object cxLabel1: TcxLabel
+      Left = 42
+      Top = 18
+      Caption = #25195#30721#26538#32452#21517#31216#65306
+      Properties.Alignment.Horz = taRightJustify
+      AnchorX = 130
+    end
+  end
+end

@@ -1,0 +1,40 @@
+﻿//---------------------------------------------------------------------------
+
+#ifndef SocketServerNetH
+#define SocketServerNetH
+//---------------------------------------------------------------------------
+
+//---------------------------------------------------------------------------
+#pragma once
+
+/*
+SocketServerNet.h
+ÓÃÓÚ±íÊ¾·þÎñ¶ËµÄÍøÂç²Ù×÷
+
+*/
+
+#include <stdio.h>
+//#include <winsock.h>
+#include <vcl.h>
+#pragma comment (lib,"ws2_32.lib")
+
+enum SocketStatus
+{
+	SocketError,
+	SocketOk
+};
+
+class CServerNet
+{
+public:
+	CServerNet();
+	virtual ~CServerNet();
+    //³õÊ¼»¯·þÎñÆ÷,·µ»Ø0±íÊ¾³É¹¦
+    SocketStatus Init(String address,int port);
+
+    //¸üÐÂÊý¾Ý
+    void Run();
+private:
+    SOCKET m_sock;
+};
+#endif

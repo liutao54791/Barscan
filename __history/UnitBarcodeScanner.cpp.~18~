@@ -1,0 +1,184 @@
+//---------------------------------------------------------------------------
+
+#pragma hdrstop
+
+#include "UnitBarcodeScanner.h"
+
+//---------------------------------------------------------------------------
+#pragma package(smart_init)
+//---------------------------------------------------------------------------
+TBarcodeScanner::TBarcodeScanner() : m_hWnd(NULL)
+{
+	m_plScannerList = new TList;
+	m_pslBarcodeList = new TStringList;
+}
+//---------------------------------------------------------------------------
+TBarcodeScanner::~TBarcodeScanner()
+{
+	delete m_plScannerList;
+	delete m_pslBarcodeList;
+}
+//---------------------------------------------------------------------------
+int TBarcodeScanner::Start()
+{
+	OpenScanners();
+}
+//---------------------------------------------------------------------------
+void TBarcodeScanner::Stop()
+{
+	CloseScanners();
+}
+//---------------------------------------------------------------------------
+void TBarcodeScanner::AddScanner(void* Scanner)
+{
+	m_plScannerList->Add(Scanner);
+}
+//---------------------------------------------------------------------------
+void TBarcodeScanner::RemoveScanner(void* Scanner)
+{
+	int nIndex = m_plScannerList->IndexOf(Scanner);
+	m_plScannerList->Delete(nIndex);
+}
+//---------------------------------------------------------------------------
+void TBarcodeScanner::ClearScanners()
+{
+	CloseScanners();
+	m_plScannerList->Clear();
+}
+//---------------------------------------------------------------------------
+void TBarcodeScanner::SetHandle(HWND hWnd)
+{
+	m_hWnd = hWnd;
+}
+//---------------------------------------------------------------------------
+void TBarcodeScanner::UploadBarcode(BARCODE bBarcode)
+{
+	if (m_hWnd)
+	{
+		::SendMessageA(m_hWnd,WM_BARCODE_SCANNED,(WPARAM)this,(LPARAM)&bBarcode);
+	}
+}
+
+//---------------------------------------------------------------------------
+bool TBarcodeScanner::IsValidBarcode(String strBarcode,int nIndex)
+{
+	return strBarcode.Length() == m_vBarcodeLength[nIndex];
+}
+
+//---------------------------------------------------------------------------
+
+//---------------------------------------------------------------------------
+THoneyWellBarcodeScanner::THoneyWellBarcodeScanner()
+{
+ 	m_pcsMutex = new TCriticalSection();
+}
+//---------------------------------------------------------------------------
+THoneyWellBarcodeScanner::~THoneyWellBarcodeScanner()
+{
+	CloseScanners();
+
+	delete m_pcsMutex;
+}
+//---------------------------------------------------------------------------
+int THoneyWellBarcodeScanner::OpenScanners()
+{
+	CloseScanners();
+
+	for (int i = 0;i < m_plScannerList->Count; i++)
+	{
+		ISerialPort* pscComm = (ISerialPort*)m_plScannerList->Items[i];
+		TSerialPortEventSink* pesEventSink = new TSerialPortEventSink;
+		pesEventSink->OnRead = OnRead;
+		pesEventSink->Connect(pscComm);
+		m_vEventSink.push_back(pesEventSink);
+		//open
+		pscComm->Open();
+	}
+	return 0;
+}
+//---------------------------------------------------------------------------
+void THoneyWellBarcodeScanner::CloseScanners()
+{
+	for (int i = 0;i < m_plScannerList->Count; i++)
+	{
+		ISerialPort* pscComm = (ISerialPort*)m_plScannerList->Items[i];
+		//Close
+		pscComm->Close();
+		m_vEventSink.at(i)->DisConnect();
+		delete m_vEventSink.at(i);
+		m_vEventSink.at(i) = NULL;
+	}
+
+	m_vEventSink.clear();
+}
+//---------------------------------------------------------------------------
+void THoneyWellBarcodeScanner::StartScanBarcode(int nIndex)
+{
+	ISerialPort* pscComm = (ISerialPort*)m_plScannerList->Items[nIndex];
+	unsigned char CtrlScanBuff[10] = {0};
+	CtrlScanBuff[0] = 0x16;
+	CtrlScanBuff[1] = 0x54;
+	CtrlScanBuff[2] = 0x0D;
+
+	pscComm->SendBuffer(CtrlScanBuff,3);   //16 54 0Dɨ�裬16 55 0Dֹͣ
+}
+//---------------------------------------------------------------------------
+void THoneyWellBarcodeScanner::StartScanBarcode()
+{
+	for (int i = 0; i < m_plScannerList->Count; i++)
+	{
+		ISerialPort* pscComm = (ISerialPort*)m_plScannerList->Items[i];
+		unsigned char CtrlScanBuff[10] = {0};
+		CtrlScanBuff[0] = 0x16;
+		CtrlScanBuff[1] = 0x54;
+		CtrlScanBuff[2] = 0x0D;
+
+		pscComm->SendBuffer(CtrlScanBuff,3);   //16 54 0Dɨ�裬16 55 0Dֹͣ
+	}
+}
+
+//---------------------------------------------------------------------------
+void THoneyWellBarcodeScanner::OnRead(IUnknown* Sender,BYTE* pbData,ULONG nLength)
+{
+	ISerialPortPtr pSender = Sender;
+
+	ISerialPort* pscComm = NULL;
+	int nIndex = 0;
+	for (nIndex = 0; nIndex < m_plScannerList->Count; nIndex++)
+	{
+		ISerialPort* pscComm = (ISerialPort*)m_plScannerList->Items[nIndex];
+		if (pscComm->Tag == pSender->Tag)
+			break;
+		else
+			pscComm = NULL;
+	}
+
+	if (pscComm == NULL)
+	{
+		return;
+	}
+
+	if (nLength != m_vBarcodeLength[nIndex])
+	{
+		StartScanBarcode(nIndex);
+		return;
+	}
+	String strBarcode( (char*)pbData,nLength);
+	m_pslBarcodeList->Strings[nIndex] = strBarcode;
+
+	m_pcsMutex->Acquire();
+
+	try
+	{
+		//csMutex
+		m_nScannedCount++;
+		BARCODE bBarcode;
+		bBarcode.strValue = strBarcode;
+		bBarcode.strTag = String(pscComm->Tag);
+		UploadBarcode(bBarcode);
+	}
+	__finally
+	{
+		m_pcsMutex->Release();
+	}
+}

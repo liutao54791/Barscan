@@ -1,0 +1,48 @@
+#include <vcl.h>
+#pragma hdrstop
+#include "ServerThread.h"
+//---------------------------------------------------------------------------
+#pragma package(smart_init)
+//---------------------------------------------------------------------------
+__fastcall TServerThread::TServerThread(bool CreateSuspended,TServerClientWinSocket* ASocket)
+ : TServerClientThread(CreateSuspended,ASocket)
+{
+    FreeOnTerminate=false;
+}
+//---------------------------------------------------------------------------
+void __fastcall TServerThread::ClientExecute(void)
+{//当一个客户连接的时候进入ClientExecute
+
+    //1.接收数据
+    try
+    {
+        pStream = new TWinSocketStream(ClientSocket,60000);
+        char buf[1024];
+        memset(buf,0,sizeof(buf));
+        try
+        {
+            int len = 0;
+            if(pStream->WaitForData(60000))
+            {
+                len = pStream->Read(buf,1024);
+				buf[len]=0;
+				if(buf[1] == 0x23)
+				{
+					ShowMessage("right");
+				}
+            }
+        }
+        catch(Exception &E)
+        {
+
+        }
+         //2.发送数据
+        //ClientSocket->SendText("已经收到消息!消息为"+AnsiString(buf));
+    }
+    __finally
+    {
+        //ClientSocket->Close();
+        delete pStream;
+    }
+}
+

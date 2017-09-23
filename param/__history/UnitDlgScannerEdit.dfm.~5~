@@ -1,0 +1,99 @@
+inherited DialogScannerEdit: TDialogScannerEdit
+  Caption = #25195#30721#26538#32534#36753
+  ClientHeight = 194
+  ClientWidth = 423
+  ExplicitWidth = 429
+  ExplicitHeight = 223
+  PixelsPerInch = 96
+  TextHeight = 12
+  inherited PanelButton: TPanel
+    Top = 153
+    Width = 423
+    ExplicitTop = 153
+    ExplicitWidth = 423
+    inherited cxButtonOk: TcxButton
+      Left = 104
+      Top = 6
+      ExplicitLeft = 104
+      ExplicitTop = 6
+    end
+  end
+  object dxLayoutControl1: TdxLayoutControl
+    Left = 0
+    Top = 0
+    Width = 423
+    Height = 153
+    Align = alClient
+    TabOrder = 1
+    object cxComboBoxGroup: TcxComboBox
+      Left = 89
+      Top = 11
+      Style.BorderColor = clWindowFrame
+      Style.BorderStyle = ebs3D
+      Style.HotTrack = False
+      Style.ButtonStyle = bts3D
+      Style.PopupBorderStyle = epbsFrame3D
+      TabOrder = 0
+      Width = 240
+    end
+    object cxTextEditScanner: TcxTextEdit
+      Left = 89
+      Top = 63
+      Style.BorderColor = clWindowFrame
+      Style.BorderStyle = ebs3D
+      Style.HotTrack = False
+      TabOrder = 2
+      Width = 121
+    end
+    object cxComboBoxTag: TcxComboBox
+      Left = 89
+      Top = 37
+      Style.BorderColor = clWindowFrame
+      Style.BorderStyle = ebs3D
+      Style.HotTrack = False
+      Style.ButtonStyle = bts3D
+      Style.PopupBorderStyle = epbsFrame3D
+      TabOrder = 1
+      Text = 'cxComboBoxTag'
+      Width = 121
+    end
+    object dxLayoutControl1Group_Root: TdxLayoutGroup
+      AlignHorz = ahLeft
+      AlignVert = avTop
+      ButtonOptions.Buttons = <>
+      Hidden = True
+      ShowBorder = False
+      Index = -1
+    end
+    object dxLayoutItem1: TdxLayoutItem
+      Parent = dxLayoutControl1Group_Root
+      CaptionOptions.AlignHorz = taRightJustify
+      CaptionOptions.Text = #25195#30721#26538#32452':'
+      Control = cxComboBoxGroup
+      ControlOptions.ShowBorder = False
+      Index = 0
+    end
+    object dxLayoutItem2: TdxLayoutItem
+      Parent = dxLayoutControl1Group_Root
+      CaptionOptions.Text = #25195#30721#26538#21517#31216#65306
+      Control = cxTextEditScanner
+      ControlOptions.ShowBorder = False
+      Index = 2
+    end
+    object dxLayoutItem3: TdxLayoutItem
+      Parent = dxLayoutControl1Group_Root
+      AlignHorz = ahLeft
+      CaptionOptions.Text = #25195#30721#26538#26631#31614#65306
+      Visible = False
+      Control = cxComboBoxTag
+      ControlOptions.ShowBorder = False
+      Index = 1
+    end
+  end
+  object dxLayoutLookAndFeelListLocal: TdxLayoutLookAndFeelList
+    Left = 336
+    Top = 32
+    object dxLayoutCxLookAndFeel1: TdxLayoutCxLookAndFeel
+    end
+  end
+end

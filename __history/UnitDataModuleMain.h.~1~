@@ -1,0 +1,57 @@
+//---------------------------------------------------------------------------
+
+#ifndef UnitDataModuleMainH
+#define UnitDataModuleMainH
+//---------------------------------------------------------------------------
+/* -- usr -- */
+#include "TypeDef.h"
+/*-- sys -- */
+#include <System.Classes.hpp>
+#include <Data.DB.hpp>
+#include <Data.Win.ADODB.hpp>
+
+#include <FireDAC.Phys.hpp>
+#include <FireDAC.Phys.MongoDB.hpp>
+#include <FireDAC.Comp.Client.hpp>
+#include <FireDAC.Phys.MongoDBDataSet.hpp>
+//---------------------------------------------------------------------------
+
+using namespace tccpplib;
+
+typedef struct tagOPERATOR_INFO
+{
+	int nOperatorId;
+	int nRoleId;
+}OPERATOR_INFO,*POPERATOR_INFO;
+
+class TDataModuleMain : public TDataModule
+{
+__published:	// IDE-managed Components
+	TADOConnection *ADOConnectionMain;
+	void __fastcall DataModuleCreate(TObject *Sender);
+	void __fastcall DataModuleDestroy(TObject *Sender);
+public:
+	enum TDatabaseType {dtMsAccess,dtMySQL,dtMsSQL,dtOracle};
+public:		// User declarations
+	__fastcall TDataModuleMain(TComponent* Owner);
+
+	TMongoConnection* GetMongoConnection();
+public:
+	OPERATOR_INFO m_oiOperatorInfo;
+	TMongoDatabase* m_pmdDatabase;
+private:	// User declarations
+	String GetConnectionString();
+	String GetMDConnectionString(String& strDBName);
+private:
+	String m_strConnection;
+
+	TFDPhysMongoDriverLink* m_pmdlLink;
+	TFDConnection* m_pcMdConnection;
+
+	TMongoConnection* m_pmcConnection;
+	TMongoEnv* m_pmeEnv;
+};
+//---------------------------------------------------------------------------
+extern PACKAGE TDataModuleMain *DataModuleMain;
+//---------------------------------------------------------------------------
+#endif

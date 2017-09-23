@@ -1,0 +1,204 @@
+//---------------------------------------------------------------------------
+
+#pragma hdrstop
+
+#include "UnitTypeBase.h"
+#include "UnitIterator.h"
+
+#include <sstream>
+//---------------------------------------------------------------------------
+#pragma package(smart_init)
+//---------------------------------------------------------------------------
+TTcpIpAddress::TTcpIpAddress()
+{
+	m_strIp = "127.0.0.1";
+	m_nPort = 0;
+}
+//---------------------------------------------------------------------------
+TTcpIpAddress::TTcpIpAddress(const TTcpIpAddress& tiaAddress)
+{
+	this->m_strIp = tiaAddress.m_strIp;
+	this->m_nPort = tiaAddress.m_nPort;
+}
+//---------------------------------------------------------------------------
+TTcpIpAddress::TTcpIpAddress(TStdString strIp,TWord nPort)
+{
+	m_strIp = strIp;
+	m_nPort = nPort;
+}
+TTcpIpAddress::TTcpIpAddress(TStdString strAddress)
+{
+	size_t nPos = strAddress.find(';');
+	m_strIp = strAddress.substr(0,nPos);
+	nPos += 1;
+	m_nPort = atoi(strAddress.substr(nPos,strAddress.length() - nPos).c_str());
+}
+//---------------------------------------------------------------------------
+TTcpIpAddress& TTcpIpAddress::operator = (const TTcpIpAddress& tiaAddress)
+{
+	this->m_strIp = tiaAddress.m_strIp;
+	this->m_nPort = tiaAddress.m_nPort;
+	return *this;
+}
+//---------------------------------------------------------------------------
+TTcpIpAddress::~TTcpIpAddress()
+{
+
+}
+//---------------------------------------------------------------------------
+TVoid TTcpIpAddress::SetAddress(TStdString strIp,TWord nPort)
+{
+ 	m_strIp = strIp;
+	m_nPort = nPort;
+}
+//---------------------------------------------------------------------------
+TStdString TTcpIpAddress::GetIp()
+{
+	return m_strIp;
+}
+//---------------------------------------------------------------------------
+TWord TTcpIpAddress::GetPort()
+{
+	return m_nPort;
+}
+//---------------------------------------------------------------------------
+TStdString TTcpIpAddress::ToString()
+{
+	TStdString strPort = "";
+	std::stringstream ssPort;
+	ssPort << m_nPort;
+	ssPort >> strPort;
+
+	return m_strIp + ";" + strPort;
+}
+
+//===================================================================
+
+TCommMessage::TCommMessage()
+{
+	m_pbMsg = NULL;
+	m_nMsgLen = 0;
+
+	m_mdDir = mdIn;
+}
+TCommMessage::TCommMessage(TTcpIpAddress tiaAddress,TByte* pbMsg,TWord nMsgLen)
+{
+	m_nMsgLen = nMsgLen;
+	m_pbMsg = new TByte[m_nMsgLen];
+	memcpy(m_pbMsg,pbMsg,nMsgLen);
+	m_tiaAddress = tiaAddress;
+}
+TCommMessage::TCommMessage(const TCommMessage& cmMsg)
+{
+	this->m_nMsgLen = cmMsg.m_nMsgLen;
+	this->m_pbMsg = new TByte[m_nMsgLen];
+	memcpy(this->m_pbMsg,cmMsg.m_pbMsg,m_nMsgLen);
+	this->m_tiaAddress = cmMsg.m_tiaAddress;
+}
+
+TCommMessage& TCommMessage::operator = (const TCommMessage& cmMsg)
+{
+	if (this->m_pbMsg)
+		delete[] this->m_pbMsg;
+	this->m_nMsgLen = cmMsg.m_nMsgLen;
+	this->m_pbMsg = new TByte[m_nMsgLen];
+	memcpy(this->m_pbMsg,cmMsg.m_pbMsg,m_nMsgLen);
+	m_tiaAddress = cmMsg.m_tiaAddress;
+}
+
+TCommMessage::~TCommMessage()
+{
+	if (m_pbMsg)
+		delete[] m_pbMsg;
+}
+TByte* TCommMessage::GetMsg()
+{
+	return m_pbMsg;
+}
+TWord TCommMessage::GetMsgLength()
+{
+	return m_nMsgLen;
+}
+TTcpIpAddress TCommMessage::GetAddress()
+{
+	return m_tiaAddress;
+}
+TVoid TCommMessage::SetMsg(TByte* pbMsg,TWord nMsgLen)
+{
+	if (m_pbMsg)
+		delete[] m_pbMsg;
+	m_nMsgLen = nMsgLen;
+	m_pbMsg = new TByte[m_nMsgLen];
+	memcpy(m_pbMsg,pbMsg,nMsgLen);
+}
+TVoid TCommMessage::SetAddress(TTcpIpAddress tiaAddress)
+{
+	m_tiaAddress = tiaAddress;
+}
+
+TVoid TCommMessage::SetMessageDir(TMessageDir mdDir)
+{
+	m_mdDir = mdDir;
+}
+TCommMessage::TMessageDir TCommMessage::GetMessageDir()
+{
+	return m_mdDir;
+}
+
+//===================================================================
+
+TMessageBuffer::TMessageBuffer()
+{
+	m_nCapability = 1024;
+}
+TMessageBuffer::TMessageBuffer(TWord nCapability)
+{
+	m_nCapability = nCapability;
+}
+TMessageBuffer::~TMessageBuffer()
+{
+	Clear();
+}
+TUnsignedInteger TMessageBuffer::Size() const
+{
+	return m_vMsgBuffer.size();
+}
+TCommMessage* TMessageBuffer::GetItem(TUnsignedInteger nIndex) const
+{
+	return nIndex >= Size() ? NULL : m_vMsgBuffer.at(nIndex);
+}
+TIterator<TCommMessage>* TMessageBuffer::CreateIterator() const
+{
+	return new TIterator<TCommMessage>(this);
+}
+bool TMessageBuffer::IsEmpty()
+{
+	return Size() ==0;
+}
+bool TMessageBuffer::IsFull()
+{
+	return Size() == m_nCapability;
+}
+TWord TMessageBuffer::AddMessage(TCommMessage* pcmMsg)
+{
+	if (IsFull())
+		return 0xFFFF;
+	m_vMsgBuffer.push_back(pcmMsg);
+}
+TCommMessage* TMessageBuffer::PeekMsg()
+{
+	if (IsEmpty())
+		return NULL;
+	TCommMessage* pcmMsg = m_vMsgBuffer.at(0);
+	m_vMsgBuffer.erase(m_vMsgBuffer.begin());
+	return pcmMsg;
+}
+TVoid TMessageBuffer::Clear()
+{
+	std::vector<TCommMessage*>::iterator iIter = m_vMsgBuffer.begin();
+	for (;iIter != m_vMsgBuffer.end();++iIter )
+		delete *iIter;
+	m_vMsgBuffer.clear();
+}
+
+

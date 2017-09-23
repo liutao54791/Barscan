@@ -1,0 +1,100 @@
+inherited DlgBarcodeHeaderEdit: TDlgBarcodeHeaderEdit
+  Caption = #26465#30721#26631#39064#32534#36753
+  ClientHeight = 144
+  ClientWidth = 262
+  ExplicitWidth = 268
+  ExplicitHeight = 173
+  PixelsPerInch = 96
+  TextHeight = 12
+  inherited PanelButton: TPanel
+    Top = 103
+    Width = 262
+    ExplicitTop = 103
+    ExplicitWidth = 262
+    inherited cxButtonOk: TcxButton
+      Left = 40
+      Top = 6
+      ExplicitLeft = 40
+      ExplicitTop = 6
+    end
+    inherited cxButtonCancle: TcxButton
+      Left = 150
+      Top = 6
+      ExplicitLeft = 150
+      ExplicitTop = 6
+    end
+  end
+  object dxLayoutControl1: TdxLayoutControl
+    Left = 0
+    Top = 0
+    Width = 262
+    Height = 103
+    Align = alClient
+    TabOrder = 1
+    object cxTextEditBarcodeHeader: TcxTextEdit
+      Left = 77
+      Top = 64
+      Style.BorderColor = clWindowFrame
+      Style.BorderStyle = ebs3D
+      Style.HotTrack = False
+      TabOrder = 2
+      Width = 164
+    end
+    object cxComboBoxScanner: TcxComboBox
+      Left = 77
+      Top = 11
+      Style.BorderColor = clWindowFrame
+      Style.BorderStyle = ebs3D
+      Style.HotTrack = False
+      Style.ButtonStyle = bts3D
+      Style.PopupBorderStyle = epbsFrame3D
+      TabOrder = 0
+      Width = 164
+    end
+    object SpinEdit1: TSpinEdit
+      Left = 77
+      Top = 37
+      Width = 68
+      Height = 21
+      MaxValue = 0
+      MinValue = 0
+      TabOrder = 1
+      Value = 0
+    end
+    object dxLayoutControl1Group_Root: TdxLayoutGroup
+      AlignHorz = ahLeft
+      AlignVert = avTop
+      ButtonOptions.Buttons = <>
+      Hidden = True
+      ShowBorder = False
+      Index = -1
+    end
+    object dxLayoutItem2: TdxLayoutItem
+      Parent = dxLayoutControl1Group_Root
+      CaptionOptions.AlignHorz = taRightJustify
+      CaptionOptions.Text = #26465#30721#26631#39064#65306
+      Control = cxTextEditBarcodeHeader
+      ControlOptions.ShowBorder = False
+      Index = 2
+    end
+    object dxLayoutItem3: TdxLayoutItem
+      Parent = dxLayoutControl1Group_Root
+      AlignHorz = ahLeft
+      AlignVert = avTop
+      CaptionOptions.AlignHorz = taRightJustify
+      CaptionOptions.Text = #25195#30721#26538#65306
+      Control = cxComboBoxScanner
+      ControlOptions.ShowBorder = False
+      Index = 0
+    end
+    object dxLayoutItem1: TdxLayoutItem
+      Parent = dxLayoutControl1Group_Root
+      AlignHorz = ahLeft
+      CaptionOptions.AlignHorz = taRightJustify
+      CaptionOptions.Text = #25195#30721#39034#24207#65306
+      Control = SpinEdit1
+      ControlOptions.ShowBorder = False
+      Index = 1
+    end
+  end
+end

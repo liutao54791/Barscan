@@ -1,0 +1,38 @@
+//---------------------------------------------------------------------------
+
+#ifndef SocketServerNetH
+#define SocketServerNetH
+//---------------------------------------------------------------------------
+#pragma once
+
+/*
+SocketServerNet.h
+用于表示服务端的网络操作
+
+*/
+
+#include <stdio.h>
+//#include <winsock.h>
+#include <vcl.h>
+#pragma comment (lib,"ws2_32.lib")
+
+enum SocketStatus
+{
+	SocketError,
+	SocketOk
+};
+
+class CServerNet
+{
+public:
+	CServerNet();
+	virtual ~CServerNet();
+    //初始化服务器,返回0表示成功
+    SocketStatus Init(String address,int port);
+
+    //更新数据
+    void Run();
+private:
+    SOCKET m_sock;
+};
+#endif

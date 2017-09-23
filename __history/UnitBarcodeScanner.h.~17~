@@ -1,0 +1,68 @@
+//---------------------------------------------------------------------------
+
+#ifndef UnitBarcodeScannerH
+#define UnitBarcodeScannerH
+//---------------------------------------------------------------------------
+#include <Classes.hpp>
+#include <vector>
+
+#include "UnitCommEventSink.h"
+
+#define WM_BARCODE_SCANNED WM_USER + 1
+
+using std::vector;
+
+typedef struct _tagBARCODE
+{
+	String strTag;
+	String strValue;
+}BARCODE,*PBARCODE;
+
+class TBarcodeScanner
+{
+public:
+	TBarcodeScanner();
+	virtual ~TBarcodeScanner();
+public:
+	int Start();
+	void Stop();
+	void AddScanner(void* Scanner);
+	void RemoveScanner(void* Scanner);
+	void ClearScanners();
+	void SetHandle(HWND hWnd);
+protected:
+	void UploadBarcode(BARCODE bBarcode);
+	bool IsValidBarcode(String strBarcode,int nIndex);
+private:
+	virtual int OpenScanners() = 0;
+	virtual void CloseScanners() = 0;
+	virtual void StartScanBarcode(int nIndex) = 0;
+	virtual void StartScanBarcode();
+protected:
+	TList* m_plScannerList;
+	vector<int> m_vBarcodeLength;
+	TStringList* m_pslBarcodeList;
+
+	int m_nScannedCount;
+	HWND m_hWnd;
+};
+
+class THoneyWellBarcodeScanner : public TBarcodeScanner
+{
+public:
+	THoneyWellBarcodeScanner();
+	~THoneyWellBarcodeScanner();
+private:
+	int OpenScanners();
+	void CloseScanners();
+	void StartScanBarcode(int nIndex);
+	void StartScanBarcode();
+
+private:
+	void OnRead(IUnknown* Sender,BYTE* pbData,ULONG nLength);
+private:
+	vector<TSerialPortEventSink*> m_vEventSink;
+	TCriticalSection* m_pcsMutex;
+};
+
+#endif

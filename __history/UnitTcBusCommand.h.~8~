@@ -1,0 +1,117 @@
+//---------------------------------------------------------------------------
+
+#ifndef UnitTcBusCommandH
+#define UnitTcBusCommandH
+//---------------------------------------------------------------------------
+#include <System.Classes.hpp>
+
+//------------------------------common------------------------------------------
+
+template<class T1,class T2>
+class TTcBusCommand
+{
+public:
+	TTcBusCommand();
+	~TTcBusCommand();
+public:
+	void BuildCommand(T1* pParam,BYTE* pbData,int& nSize);
+	bool AnalyseResponse(BYTE* pbData,int nSize,T2* pvRet);
+};
+
+template<class T1,class T2>
+TTcBusCommand<T1,T2>::TTcBusCommand()
+{
+
+}
+
+template <class T1,class T2>
+TTcBusCommand<T1,T2>::~TTcBusCommand()
+{
+
+}
+
+template<class T1,class T2>
+void TTcBusCommand<T1,T2>::BuildCommand(T1* pParam,BYTE* pbData,int& nSize)
+{
+	nSize = 0;
+}
+
+template<class T1,class T2>
+bool TTcBusCommand<T1,T2>::AnalyseResponse(BYTE* pbData,int nSize,T2* pvRet)
+{
+	return false;
+}
+
+
+
+//-------------------------SINGLE_RELAY_CONTROL---------------------------------
+
+typedef struct _tagSINGLE_RELAY_CONTROL_PARAM
+{
+	BYTE nRelayNo;
+	enum RelayState
+	{
+		rsOn = 0xAA,
+		rsOff = 0x55
+	}rsState;
+}SINGLE_RELAY_CONTROL_PARAM,*PSINGLE_RELAY_CONTROL_PARAM;
+
+typedef struct _tagCONTROL_RESPONSE
+{
+	BYTE nResult;
+	unsigned short nErrorCode;
+}CONTROL_RESPONSE,*PCONTROL_RESPONSE;
+
+template<>
+class TTcBusCommand<SINGLE_RELAY_CONTROL_PARAM,CONTROL_RESPONSE>
+{
+public:
+	TTcBusCommand()
+	{
+
+	}
+	~TTcBusCommand()
+	{
+
+	}
+public:
+	void BuildCommand(SINGLE_RELAY_CONTROL_PARAM* pvParam,BYTE* pbData,int& nSize)
+	{
+		int nPos = 0;
+		pbData[nPos++] = 0x7F;
+		pbData[nPos++] = 0x0A;
+		pbData[nPos++] = 0x76;
+		pbData[nPos++] = 0xFE;
+		pbData[nPos++] = 0;     									//s_ID
+		pbData[nPos++] = 0;             							//d_ID
+		pbData[nPos++] = 0;             							//SEQ
+		pbData[nPos++] = 0xC0 + pvParam->nRelayNo;
+		pbData[nPos++] = 0x64;
+		pbData[nPos++] = 0x02;
+		pbData[nPos++] = pvParam->rsState;
+		pbData[nPos++] = 0;     									//cs1
+		pbData[nPos++] = 0;             							//cs2
+		nSize = nPos;
+	}
+	bool AnalyseResponse(BYTE* pbData,int nSize,CONTROL_RESPONSE* pvRet)
+	{
+		int nPos = 0;
+		nPos += 9;
+		if (nPos > nSize)
+		{
+			return false;
+		}
+
+		pvRet->nResult = pbData[nPos++];
+		pvRet->nErrorCode = pbData[nPos++];
+		pvRet->nErrorCode = (pvRet->nErrorCode << 8) + pbData[nPos++];
+		return true;
+	}
+};
+
+
+
+//-------------------------SINGLE_RELAY_CONTROL---------------------------------
+
+
+#endif

@@ -1,0 +1,81 @@
+inherited DialogBarcodeHeaderEdit: TDialogBarcodeHeaderEdit
+  Caption = #26465#30721#26631#39064#32534#36753
+  ClientHeight = 120
+  ClientWidth = 262
+  ExplicitWidth = 268
+  ExplicitHeight = 149
+  PixelsPerInch = 96
+  TextHeight = 12
+  inherited PanelButton: TPanel
+    Top = 79
+    Width = 262
+    inherited cxButtonOk: TcxButton
+      Left = 40
+      Top = 6
+      ExplicitLeft = 40
+      ExplicitTop = 6
+    end
+    inherited cxButtonCancle: TcxButton
+      Left = 166
+      Top = 6
+      ExplicitLeft = 166
+      ExplicitTop = 6
+    end
+  end
+  object dxLayoutControl1: TdxLayoutControl
+    Left = 0
+    Top = 0
+    Width = 262
+    Height = 79
+    Align = alClient
+    TabOrder = 1
+    ExplicitLeft = 96
+    ExplicitTop = 32
+    ExplicitWidth = 300
+    ExplicitHeight = 250
+    object SpinEdit1: TSpinEdit
+      Left = 77
+      Top = 11
+      Width = 68
+      Height = 21
+      MaxValue = 0
+      MinValue = 0
+      TabOrder = 0
+      Value = 0
+    end
+    object cxTextEditBarcodeHeader: TcxTextEdit
+      Left = 77
+      Top = 38
+      Style.BorderColor = clWindowFrame
+      Style.BorderStyle = ebs3D
+      Style.HotTrack = False
+      TabOrder = 1
+      Width = 164
+    end
+    object dxLayoutControl1Group_Root: TdxLayoutGroup
+      AlignHorz = ahLeft
+      AlignVert = avTop
+      ButtonOptions.Buttons = <>
+      Hidden = True
+      ShowBorder = False
+      Index = -1
+    end
+    object dxLayoutItem1: TdxLayoutItem
+      Parent = dxLayoutControl1Group_Root
+      AlignHorz = ahLeft
+      CaptionOptions.AlignHorz = taRightJustify
+      CaptionOptions.Text = #25195#30721#39034#24207#65306
+      Control = SpinEdit1
+      ControlOptions.ShowBorder = False
+      Index = 0
+    end
+    object dxLayoutItem2: TdxLayoutItem
+      Parent = dxLayoutControl1Group_Root
+      CaptionOptions.AlignHorz = taRightJustify
+      CaptionOptions.Text = #26465#30721#26631#39064#65306
+      Control = cxTextEditBarcodeHeader
+      ControlOptions.ShowBorder = False
+      Index = 1
+    end
+  end
+end

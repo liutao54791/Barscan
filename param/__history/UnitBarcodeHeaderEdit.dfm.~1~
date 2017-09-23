@@ -1,0 +1,41 @@
+inherited DialogBarcodeHeaderEdit: TDialogBarcodeHeaderEdit
+  Caption = #26465#30721#26631#39064#32534#36753
+  ClientHeight = 178
+  ClientWidth = 383
+  ExplicitWidth = 389
+  ExplicitHeight = 207
+  PixelsPerInch = 96
+  TextHeight = 12
+  inherited PanelButton: TPanel
+    Top = 137
+    Width = 383
+    inherited cxButtonOk: TcxButton
+      Left = 80
+      ExplicitLeft = 80
+    end
+    inherited cxButtonCancle: TcxButton
+      Left = 224
+      ExplicitLeft = 224
+    end
+  end
+  object dxLayoutControl1: TdxLayoutControl
+    Left = 0
+    Top = 0
+    Width = 383
+    Height = 137
+    Align = alClient
+    TabOrder = 1
+    ExplicitLeft = 96
+    ExplicitTop = 32
+    ExplicitWidth = 300
+    ExplicitHeight = 250
+    object dxLayoutControl1Group_Root: TdxLayoutGroup
+      AlignHorz = ahLeft
+      AlignVert = avTop
+      ButtonOptions.Buttons = <>
+      Hidden = True
+      ShowBorder = False
+      Index = -1
+    end
+  end
+end

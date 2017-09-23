@@ -1,0 +1,437 @@
+//---------------------------------------------------------------------------
+
+#include <vcl.h>
+#pragma hdrstop
+
+#include "UnitFormMain.h"
+
+#include "UnitDlgScannerConfig.h"
+#include "UnitDataModuleMain.h"
+#include "UnitBarcodeScanner.h"
+
+#include "UnitDlgCommEdit.h"
+#include "UnitTcBusCommand.h"
+
+#include <System.IniFiles.hpp>
+//---------------------------------------------------------------------------
+#pragma package(smart_init)
+#pragma link "cxClasses"
+#pragma link "cxContainer"
+#pragma link "cxControls"
+#pragma link "cxCustomData"
+#pragma link "cxData"
+#pragma link "cxDataStorage"
+#pragma link "cxDBData"
+#pragma link "cxEdit"
+#pragma link "cxFilter"
+#pragma link "cxGraphics"
+#pragma link "cxGrid"
+#pragma link "cxGridCustomTableView"
+#pragma link "cxGridCustomView"
+#pragma link "cxGridDBTableView"
+#pragma link "cxGridLevel"
+#pragma link "cxGridTableView"
+#pragma link "cxLabel"
+#pragma link "cxLookAndFeelPainters"
+#pragma link "cxLookAndFeels"
+#pragma link "cxNavigator"
+#pragma link "cxStyles"
+#pragma link "dxBar"
+#pragma link "dxLayoutContainer"
+#pragma link "dxLayoutControl"
+#pragma link "dxLayoutcxEditAdapters"
+#pragma link "dxmdaset"
+#pragma link "dxSkinBlack"
+#pragma link "dxSkinBlue"
+#pragma link "dxSkinBlueprint"
+#pragma link "dxSkinCaramel"
+#pragma link "dxSkinCoffee"
+#pragma link "dxSkinDarkRoom"
+#pragma link "dxSkinDarkSide"
+#pragma link "dxSkinDevExpressDarkStyle"
+#pragma link "dxSkinDevExpressStyle"
+#pragma link "dxSkinFoggy"
+#pragma link "dxSkinGlassOceans"
+#pragma link "dxSkinHighContrast"
+#pragma link "dxSkiniMaginary"
+#pragma link "dxSkinLilian"
+#pragma link "dxSkinLiquidSky"
+#pragma link "dxSkinLondonLiquidSky"
+#pragma link "dxSkinMcSkin"
+#pragma link "dxSkinMetropolis"
+#pragma link "dxSkinMetropolisDark"
+#pragma link "dxSkinMoneyTwins"
+#pragma link "dxSkinOffice2007Black"
+#pragma link "dxSkinOffice2007Blue"
+#pragma link "dxSkinOffice2007Green"
+#pragma link "dxSkinOffice2007Pink"
+#pragma link "dxSkinOffice2007Silver"
+#pragma link "dxSkinOffice2010Black"
+#pragma link "dxSkinOffice2010Blue"
+#pragma link "dxSkinOffice2010Silver"
+#pragma link "dxSkinOffice2013DarkGray"
+#pragma link "dxSkinOffice2013LightGray"
+#pragma link "dxSkinOffice2013White"
+#pragma link "dxSkinOffice2016Colorful"
+#pragma link "dxSkinOffice2016Dark"
+#pragma link "dxSkinPumpkin"
+#pragma link "dxSkinsCore"
+#pragma link "dxSkinscxPCPainter"
+#pragma link "dxSkinsDefaultPainters"
+#pragma link "dxSkinsdxBarPainter"
+#pragma link "dxSkinsdxStatusBarPainter"
+#pragma link "dxSkinSeven"
+#pragma link "dxSkinSevenClassic"
+#pragma link "dxSkinSharp"
+#pragma link "dxSkinSharpPlus"
+#pragma link "dxSkinSilver"
+#pragma link "dxSkinSpringTime"
+#pragma link "dxSkinStardust"
+#pragma link "dxSkinSummer2008"
+#pragma link "dxSkinTheAsphaltWorld"
+#pragma link "dxSkinValentine"
+#pragma link "dxSkinVisualStudio2013Blue"
+#pragma link "dxSkinVisualStudio2013Dark"
+#pragma link "dxSkinVisualStudio2013Light"
+#pragma link "dxSkinVS2010"
+#pragma link "dxSkinWhiteprint"
+#pragma link "dxSkinXmas2008Blue"
+#pragma link "dxStatusBar"
+#pragma link "cxButtons"
+#pragma link "cxDropDownEdit"
+#pragma link "cxMaskEdit"
+#pragma link "cxTextEdit"
+#pragma link "dxLayoutControlAdapters"
+#pragma resource "*.dfm"
+TFormMain *FormMain;
+//---------------------------------------------------------------------------
+__fastcall TFormMain::TFormMain(TComponent* Owner)
+	: TForm(Owner)
+{
+	ADOQueryGroups->Connection = DataModuleMain->ADOConnectionMain;
+	m_plScannerInfo = new TList;
+	m_pbsScanner = NULL;
+	m_pcsTcpClient = new TClientSocket(NULL);
+	m_pcsTcpClient->OnConnect = OnClientSocketConnect;
+	m_pcsTcpClient->OnDisconnect = OnClientSocketDisconnect;
+	m_pcsTcpClient->OnRead = OnClientSocketRead;
+
+	m_nBarcodeCount = 0;
+}
+//---------------------------------------------------------------------------
+void TFormMain::CreateFields(TStringList* pslTag,TStringList* pslCaption)
+{
+	ClearFields();
+	for (int i = 0; i < pslCaption->Count; i++)
+	{
+		TStringField* psfBarcode = new TStringField(dxMemDataBarcode);
+		psfBarcode->FieldName = pslTag->Strings[i];
+		psfBarcode->DisplayLabel = pslCaption->Strings[i];
+		psfBarcode->Size = 100;
+		psfBarcode->DataSet = dxMemDataBarcode;
+	}
+	cxGridBarcodeDBTableViewBarcode->DataController->CreateAllItems();
+	cxGridBarcodeDBTableViewBarcode->ApplyBestFit();
+
+	dxMemDataBarcode->Close();
+	dxMemDataBarcode->Open();
+}
+//---------------------------------------------------------------------------
+void TFormMain::ClearFields()
+{
+	dxMemDataBarcode->Close();
+	dxMemDataBarcode->Open();
+	dxMemDataBarcode->Edit();
+	dxMemDataBarcode->ClearFields();
+	dxMemDataBarcode->Post();
+
+	dxMemDataBarcode->Close();
+	cxGridBarcodeDBTableViewBarcode->ClearItems();
+}
+//---------------------------------------------------------------------------
+void TFormMain::LoadGroups()
+{
+	String strSQL = "SELECT GROUP_ID,GROUP_NAME FROM SCANNER_GROUP \
+		ORDER BY GROUP_ID";
+
+	ADOQueryGroups->Close();
+	ADOQueryGroups->SQL->Text = strSQL;
+	ADOQueryGroups->Open();
+
+	cxComboBoxGroup->Clear();
+	for (ADOQueryGroups->First(); ! ADOQueryGroups->Eof; ADOQueryGroups->Next())
+	{
+		String strGroup = ADOQueryGroups->FieldByName("GROUP_NAME")->AsString;
+		cxComboBoxGroup->Properties->Items->Add(strGroup);
+	}
+	cxComboBoxGroup->ItemIndex = 0;
+}
+//---------------------------------------------------------------------------
+void TFormMain::LoadScanners(int nGroupIndex)
+{
+	String strSQL = "SELECT SCANNER_ID,SCANNER_TAG,SCANNER_PARAM \
+		FROM SCANNER \
+		WHERE GROUP_ID = " + String(nGroupIndex);
+
+	TADOQuery* pADOQuery = new TADOQuery(NULL);
+	pADOQuery->Connection = DataModuleMain->ADOConnectionMain;
+
+	pADOQuery->Close();
+	pADOQuery->SQL->Text = strSQL;
+	pADOQuery->Open();
+
+	for (int i = 0; i < m_plScannerInfo->Count; i++)
+	{
+		delete (PSCANNER_INFO)m_plScannerInfo->Items[i];
+	}
+	m_plScannerInfo->Clear();
+
+	for (pADOQuery->First(); ! pADOQuery->Eof; pADOQuery->Next())
+	{
+		PSCANNER_INFO psiScanner = new SCANNER_INFO;
+		psiScanner->nId = pADOQuery->FieldByName("SCANNER_ID")->AsInteger;
+		psiScanner->nTag = pADOQuery->FieldByName("SCANNER_TAG")->AsInteger;
+		psiScanner->strParam = pADOQuery->FieldByName("SCANNER_PARAM")->AsString;
+		m_plScannerInfo->Add(psiScanner);
+	}
+
+	delete pADOQuery;
+}
+void TFormMain::LoadBarcodeHeaders(int nGroupIndex)
+{
+	String strSQL = "SELECT HEADER_ID,HEADER_NAME,BARCODE_ORDER	\
+		FROM SCANNER AS S,BARCODE_HEADER AS BH,SCANNER_GROUP AS SG \
+		WHERE BH.SCANNER_ID = S.SCANNER_ID AND S.GROUP_ID = SG.GROUP_ID \
+		AND S.GROUP_ID = " + String(nGroupIndex) + " \
+		ORDER BY BARCODE_ORDER";
+
+	TADOQuery* pADOQuery = new TADOQuery(NULL);
+	pADOQuery->Connection = DataModuleMain->ADOConnectionMain;
+
+	pADOQuery->Close();
+	pADOQuery->SQL->Text = strSQL;
+	pADOQuery->Open();
+
+	TStringList* pslTags = new TStringList;
+	TStringList* pslCaptions = new TStringList;
+
+	m_nBarcodeCount = 0;
+	for (pADOQuery->First(); ! pADOQuery->Eof; pADOQuery->Next())
+	{
+		String strOrder = pADOQuery->FieldByName("BARCODE_ORDER")->AsString;
+		String strName = pADOQuery->FieldByName("HEADER_NAME")->AsString;
+
+		pslTags->Add(strOrder);
+		pslCaptions->Add(strName);
+		m_nBarcodeCount++;
+	}
+
+	delete pADOQuery;
+
+	CreateFields(pslTags,pslCaptions);
+
+	delete pslTags;
+	delete pslCaptions;
+}
+//---------------------------------------------------------------------------
+void TFormMain::LoadDefaultConfigure()
+{
+	String strFileName = ChangeFileExt(ParamStr(0),".ini");
+	TIniFile* pifReader = new TIniFile(strFileName);
+
+	String strGroup = pifReader->ReadString("SCANNER","GROUP_NAME","");
+	for (int i = 0; i < cxComboBoxGroup->Properties->Items->Count; ++i)
+	{
+		if (strGroup == cxComboBoxGroup->Properties->Items->Strings[i])
+		{
+			cxComboBoxGroup->ItemIndex = i;
+			break;
+		}
+	}
+
+	m_pcsTcpClient->Host = pifReader->ReadString("DEVICE","IP","");
+	m_pcsTcpClient->Port = pifReader->ReadInteger("DEVICE","PORT",11240);
+
+	delete pifReader;
+}
+//---------------------------------------------------------------------------
+void TFormMain::SaveDefaultConfigure()
+{
+	String strFileName = ChangeFileExt(ParamStr(0),".ini");
+	TIniFile* pifWriter = new TIniFile(strFileName);
+
+	String strGroup = cxComboBoxGroup->Text;
+	pifWriter->WriteString("SCANNER","GROUP_NAME",strGroup);
+
+	delete pifWriter;
+}
+//---------------------------------------------------------------------------
+void TFormMain::Start()
+{
+	String strGroup = cxComboBoxGroup->Text;
+	TLocateOptions loOpts;
+	Variant varKey(strGroup);
+	if (! ADOQueryGroups->Locate("GROUP_NAME",strGroup,loOpts))
+	{
+		ShowMessage("É¨ÂëÇ¹×éÖÐÎÞ¿ÉÓÃÉ¨ÂëÇ¹£¡");
+		return;
+	}
+
+	int nGroupId = ADOQueryGroups->FieldByName("GROUP_ID")->AsInteger;
+	LoadScanners(nGroupId);
+	if (m_pbsScanner)
+	{
+		delete m_pbsScanner;
+		m_pbsScanner = NULL;
+	}
+	m_pbsScanner = new THoneyWellBarcodeScanner();
+	for (int i = 0; i < m_plScannerInfo->Count; i++)
+	{
+		PSCANNER_INFO psiScanner = (PSCANNER_INFO)m_plScannerInfo->Items[i];
+		m_pbsScanner->AddScanner(*psiScanner);
+	}
+
+	LoadBarcodeHeaders(nGroupId);
+
+	m_pbsScanner->Init();
+}
+
+//---------------------------------------------------------------------------
+void __fastcall TFormMain::OnBarcodeScanned(TMessage& pmMessage)
+{
+	PBARCODE pbBarcode = (PBARCODE)pmMessage.LParam;
+
+	if (1)
+	{
+		if (1)
+		{
+			TTcBusCommand<SINGLE_RELAY_CONTROL_PARAM,CONTROL_RESPONSE> tbcCommand;
+			SINGLE_RELAY_CONTROL_PARAM cpParam;
+			BYTE bBuffer[128];
+			int nSize = 0;
+			tbcCommand.BuildCommand(&cpParam,bBuffer,nSize);
+			if (nSize > 0)
+			{
+				m_pcsTcpClient->Socket->SendBuf(bBuffer,nSize);
+			}
+		}
+		dxMemDataBarcode->Append();
+	}
+	else
+	{
+		dxMemDataBarcode->Last();
+		dxMemDataBarcode->Edit();
+	}
+	dxMemDataBarcode->FieldByName(String(pbBarcode->nTag))->AsString = pbBarcode->strValue;
+	dxMemDataBarcode->Post();
+}
+//---------------------------------------------------------------------------
+void __fastcall TFormMain::OnClientSocketConnect(TObject* Sender,
+	TCustomWinSocket* Socket)
+{
+
+}
+//---------------------------------------------------------------------------
+void __fastcall TFormMain::OnClientSocketDisconnect(TObject* Sender,
+	TCustomWinSocket* Socket)
+{
+
+}
+//---------------------------------------------------------------------------
+void __fastcall TFormMain::OnClientSocketRead(TObject* Sender,
+	TCustomWinSocket* Socket)
+{
+	int nLength = Socket->ReceiveLength();
+	BYTE* pbData = new BYTE[nLength];
+
+	Socket->ReceiveBuf(pbData,nLength);
+
+	TTcBusCommand<SINGLE_RELAY_CONTROL_PARAM,CONTROL_RESPONSE> tbcCommand;
+	CONTROL_RESPONSE cpResponse;
+	tbcCommand.AnalyseResponse(pbData,nLength,&cpResponse);
+
+	if (cpResponse.nResult == 0x82)
+	{
+
+	}
+	else
+	{
+
+	}
+}
+//---------------------------------------------------------------------------
+void __fastcall TFormMain::dxBarButtonScannerMgrClick(TObject *Sender)
+{
+	TDlgScannerConfig* pdlgScanner = new TDlgScannerConfig(NULL);
+	pdlgScanner->ShowModal();
+	delete pdlgScanner;
+
+	LoadGroups();
+}
+//---------------------------------------------------------------------------
+void __fastcall TFormMain::FormShow(TObject *Sender)
+{
+	LoadGroups();
+	LoadDefaultConfigure();
+}
+//---------------------------------------------------------------------------
+void __fastcall TFormMain::FormClose(TObject *Sender, TCloseAction &Action)
+{
+	for (int i = 0; i < m_plScannerInfo->Count; i++)
+	{
+		delete (PSCANNER_INFO)m_plScannerInfo->Items[i];
+	}
+	delete m_plScannerInfo;
+
+	if (m_pbsScanner)
+	{
+		delete m_pbsScanner;
+		m_pbsScanner = NULL;
+	}
+
+	SaveDefaultConfigure();
+
+	delete m_pcsTcpClient;
+}
+//---------------------------------------------------------------------------
+void __fastcall TFormMain::cxButtonStartClick(TObject *Sender)
+{
+	try
+	{
+		m_pcsTcpClient->Active = true;
+		Start();
+	}
+	catch (Exception& e)
+	{
+		ShowMessage("Æô¶¯Ê§°Ü£¬´íÎó£º" + e.Message);
+		return;
+	}
+}
+//---------------------------------------------------------------------------
+
+void __fastcall TFormMain::IdUDPServerDeviceUDPRead(TIdUDPListenerThread *AThread,
+		  const TIdBytes AData, TIdSocketHandle *ABinding)
+{
+	if (m_pbsScanner)
+	{
+		m_pbsScanner->Scan();
+	}
+}
+//---------------------------------------------------------------------------
+void __fastcall TFormMain::dxBarButtonCommEditClick(TObject *Sender)
+{
+	TDlgCommEdit* pdlgComm = new TDlgCommEdit(NULL);
+	if (pdlgComm->ShowModal() == mrOk)
+	{
+		String strFileName = ChangeFileExt(ParamStr(0),".ini");
+		TIniFile* pifReader = new TIniFile(strFileName);
+
+		m_pcsTcpClient->Host = pifReader->ReadString("DEVICE","IP","");
+		m_pcsTcpClient->Port = pifReader->ReadInteger("DEVICE","PORT",11240);
+
+		delete pifReader;
+	}
+	delete pdlgComm;
+}
+//---------------------------------------------------------------------------
+

@@ -1,0 +1,46 @@
+//---------------------------------------------------------------------------
+
+#ifndef UnitPageControlContainerH
+#define UnitPageControlContainerH
+//---------------------------------------------------------------------------
+#include "cxControls.hpp"
+#include "cxPC.hpp"
+#include <map>
+
+#include "TypeDef.h"
+
+#define WM_COMMON_MESSAGE					WM_USER + 100
+
+using std::map;
+//---------------------------------------------------------------------------
+class TFormBase;
+
+namespace tccpplib
+{
+
+class TContainer
+{
+public:
+	TContainer(TWinControl *pwcParent);
+	~TContainer();
+public:
+	TVoid ShowForm(TInteger nModuleId,AnsiString strModuleCaption,TForm *pForm);       //打开窗体
+	TVoid CloseActiveForm();                                                  		//关闭当前窗体
+	TVoid CloseAllForm();                                                     		//关闭所有窗体
+	TVoid SetPopupMenu(TPopupMenu *_PopupMenu);                              		//设置容器右键菜单
+	TInteger OpenedModuleCount();
+	void BroadcastMessage(TFormBase* m_pfbSender,void* pvMessage);
+private:
+	void __fastcall PageControlMouseDown(TObject *Sender,TMouseButton Button,
+		TShiftState Shift, int X, int Y);
+	void __fastcall TabSheetShow(TObject *Sender);
+private:
+	TcxPageControl* m_ppcPageControl;
+
+	TPopupMenu* m_pmPopupMenu;
+	map <int, HINSTANCE> m_mLibMap;
+	map <int, TForm*> m_mFormMap;
+};
+
+};
+#endif
