@@ -276,7 +276,7 @@ void TFormMain::Start()
 	Variant varKey(strGroup);
 	if (! ADOQueryGroups->Locate("GROUP_NAME",strGroup,loOpts))
 	{
-		ShowMessage("ɨ��ǹ�����޿���ɨ��ǹ��");
+		ShowMessage("É¨ÂëÇ¹×éÖÐÎÞ¿ÉÓÃÉ¨ÂëÇ¹£¡");
 		return;
 	}
 
@@ -315,16 +315,19 @@ void __fastcall TFormMain::OnBarcodeScanned(TMessage& pmMessage)
 
 	if (m_nCurrentBarcodeCount % m_nBarcodeCount)
 	{
-		TTcBusCommand<SINGLE_RELAY_CONTROL_PARAM,CONTROL_RESPONSE> tbcCommand;
+		/*TTcBusCommand<SINGLE_RELAY_CONTROL_PARAM,CONTROL_RESPONSE> tbcCommand;
 		SINGLE_RELAY_CONTROL_PARAM cpParam;
 		BYTE bBuffer[128];
 		int nSize = 0;
 		tbcCommand.BuildCommand(&cpParam,bBuffer,nSize);
 		if (nSize > 0)
 		{
-			m_pcsTcpClient->Socket->SendBuf(bBuffer,nSize);
-		}
-
+			AnsiString text = "success";
+			IdUDPServerDevice->Send(UdpClientIp, 8888, text); //·¢ËÍ¶Ë¿ÚºÅ¹Ì¶¨Îª8888£¬
+			//m_pcsTcpClient->Socket->SendBuf(bBuffer,nSize);
+		}*/
+		AnsiString text = "success";
+		IdUDPServerDevice->Send(UdpClientIp, 8888, text); //·¢ËÍ¶Ë¿ÚºÅ¹Ì¶¨Îª8888£¬
 		dxMemDataBarcode->Append();
 	}
 	else
@@ -416,7 +419,7 @@ void __fastcall TFormMain::cxButtonStartClick(TObject *Sender)
 	}
 	catch (Exception& e)
 	{
-		ShowMessage("����ʧ�ܣ�����" + e.Message);
+		ShowMessage("Æô¶¯Ê§°Ü£¬´íÎó£º" + e.Message);
 		return;
 	}
 }
@@ -427,10 +430,6 @@ void __fastcall TFormMain::IdUDPServerDeviceUDPRead(TIdUDPListenerThread *AThrea
 {
 	UdpClientIp = ABinding->PeerIP;
 	UdpClientPort = ABinding->PeerPort;
-	if (AData[0] == 0x23)
-	{
-		ShowMessage("Hello");
-	}
 	if (m_pbsScanner)
 	{
 		m_pbsScanner->Scan();
