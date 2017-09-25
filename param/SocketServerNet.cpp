@@ -1,4 +1,4 @@
-#pragma hdrstop
+ï»¿#pragma hdrstop
 
 #include "SocketServerNet.h"
 //---------------------------------------------------------------------------
@@ -7,7 +7,10 @@
 SocketServerNet.cpp
 */
 #include "SocketServerNet.h"
+
 #include "ServerThread.h"
+#include "workengine_TLB.h"
+#include "UnitDataModuleMain.h"
 
 #pragma package(smart_init)
 #pragma link "cxButtons"
@@ -134,12 +137,12 @@ SocketStatus CServerNet::Init(int port )
 
     SocketServer = new TServerSocket(Application);
     SocketServer->Port = port;  
-    //SocketServer->ServerType = stThreadBlocking; /**********************×èÈû·½°¸*****************/
+    //SocketServer->ServerType = stThreadBlocking; /**********************é˜»å¡žæ¨¡å¼*****************/
     SocketServer->ThreadCacheSize = ServerConnectionSize;
     SocketServer->OnClientConnect = ServerClientConnect;
     SocketServer->OnClientDisconnect = ServerClientDisconnect;
     SocketServer->OnClientRead = ServerRead;
-    //SocketServer->OnGetThread = GetThread;      /**********************×èÈû·½°¸*****************/
+    //SocketServer->OnGetThread = GetThread;      /**********************é˜»å¡žæ¨¡å¼*****************/
 
     rlt = SocketOk;
 
@@ -189,7 +192,7 @@ void __fastcall CServerNet::SendMesToAllConnect (char* Buffer, int Len)
     }
 }
 
-/**********************×èÈû·½°¸*****************/
+/**********************é˜»å¡žæ¨¡å¼*****************/
 void __fastcall CServerNet::GetThread(TObject* Sender, TServerClientWinSocket* ClientSocket,TServerClientThread* &SocketThread)
 {
     SocketThread = new TServerThread(false,ClientSocket);
@@ -198,7 +201,6 @@ void __fastcall CServerNet::GetThread(TObject* Sender, TServerClientWinSocket* C
 
 
 TidServerNet::TidServerNet():IdTCPServer(NULL)
-,RecLen(0)
 {
     WORD wVersionRequested;
     WSADATA wsadata;
@@ -257,15 +259,78 @@ void TidServerNet::Stop()
 
 void __fastcall TidServerNet::IdTCPServerMExecute(TIdContext *AContext)
 {
-     RecLen = sizeof(int);
-     if(RecLen > 0)
-     {
-        AContext->Connection->IOHandler->ReadBytes(buf,RecLen,false);
-     }
-     if(buf[1] == 0x23)
-     {
-        AContext->Connection->IOHandler->Write(buf);
-     }
+    TBytes buf;
+    int RecLen =  AContext->Connection->IOHandler->InputBuffer->Size;
+    String peerIP = AContext->Binding->PeerIP;
+    int peerport = AContext->Binding->PeerPort;
+    if(RecLen > 0)
+    {
+       AContext->Connection->IOHandler->ReadBytes(buf,RecLen,false);
+    }
+    char* DataBuf;
+    for (int i = 0; i < RecLen; i++)
+    {
+        DataBuf[i] = buf[i];
+    }
+    WideString strMessage((char*)DataBuf,RecLen);
+    delete DataBuf;
+
+    TCOMICommonMessage pcmMessage = CoCommonMessage::Create();
+    BSTR strXmlMessage = strMessage.c_bstr();
+    pcmMessage->set_XmlMessage(strXmlMessage);
+
+    /* get Type */
+    BSTR strPath = ::SysAllocString(L"CommonMessage/Header/Type");
+    BSTR strText = pcmMessage->GetNodeText(strPath);
+    WideString strType = strText;
+    int nCommandType = strType.ToInt();
+    ::SysFreeString(strPath);
+    ::SysFreeString(strText);
+
+    /* get SenderId */
+    strPath = ::SysAllocString(L"CommonMessage/Header/SenderId");
+    strText = pcmMessage->GetNodeText(strPath);
+    WideString strSenderId = strText;
+    ::SysFreeString(strPath);
+    ::SysFreeString(strText);
+
+    /* get ProductId */
+    strPath = ::SysAllocString(L"CommonMessage/Content/ProductId");
+    strText = pcmMessage->GetNodeText(strPath);
+    WideString strProductId = strText;
+    ::SysFreeString(strPath);
+    ::SysFreeString(strText);
+
+    /* get ProcedureId */
+    strPath = ::SysAllocString(L"CommonMessage/Content/ProcedureId");
+    strText = pcmMessage->GetNodeText(strPath);
+    WideString strProcedureId = strText;
+    int nProcedureId = strProcedureId.ToInt();
+    ::SysFreeString(strPath);
+    ::SysFreeString(strText);
+
+    TADOQuery* pADOQuery = new TADOQuery(NULL);
+    pADOQuery->Connection = DataModuleMain->ADOConnectionMain;
+    String strSQL ="SELECT HEADER_ID,BAR_VALUE,SCANNER_ID \
+        FROM BARCODE_VALUE \
+        WHERE PROCESS_ID = " + strProcedureId;
+
+    switch(nCommandType)
+    {
+        case 1:
+        {
+            break;
+        }
+        case 2:
+        {
+            break;
+        }
+        default:
+        break;
+
+    }
+
+    AContext->Connection->IOHandler->Write(buf);
 
 }
 //---------------------------------------------------------------------------

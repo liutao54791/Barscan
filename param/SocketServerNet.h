@@ -140,8 +140,6 @@ public:
 	void __fastcall IdTCPServerMExecute(TIdContext *AContext);
 private:
 	TIdTCPServer* IdTCPServer;
-    TBytes buf;
-    int RecLen;
 };
 
 #endif
