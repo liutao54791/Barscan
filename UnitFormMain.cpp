@@ -1,4 +1,4 @@
-//---------------------------------------------------------------------------
+﻿//---------------------------------------------------------------------------
 
 #include <vcl.h>
 #pragma hdrstop
@@ -276,7 +276,7 @@ void TFormMain::Start()
 	Variant varKey(strGroup);
 	if (! ADOQueryGroups->Locate("GROUP_NAME",strGroup,loOpts))
 	{
-		ShowMessage("É¨ÂëÇ¹×éÖÐÎÞ¿ÉÓÃÉ¨ÂëÇ¹£¡");
+		ShowMessage("没有扫码枪组");
 		return;
 	}
 
@@ -322,12 +322,10 @@ void __fastcall TFormMain::OnBarcodeScanned(TMessage& pmMessage)
 		tbcCommand.BuildCommand(&cpParam,bBuffer,nSize);
 		if (nSize > 0)
 		{
-			AnsiString text = "success";
-			IdUDPServerDevice->Send(UdpClientIp, 8888, text); //·¢ËÍ¶Ë¿ÚºÅ¹Ì¶¨Îª8888£¬
-			//m_pcsTcpClient->Socket->SendBuf(bBuffer,nSize);
+			m_pcsTcpClient->Socket->SendBuf(bBuffer,nSize);
 		}*/
 		AnsiString text = "success";
-		IdUDPServerDevice->Send(UdpClientIp, 8888, text); //·¢ËÍ¶Ë¿ÚºÅ¹Ì¶¨Îª8888£¬
+		IdUDPServerDevice->Send(UdpClientIp, UdpClientPort, text);
 		dxMemDataBarcode->Append();
 	}
 	else
@@ -419,7 +417,7 @@ void __fastcall TFormMain::cxButtonStartClick(TObject *Sender)
 	}
 	catch (Exception& e)
 	{
-		ShowMessage("Æô¶¯Ê§°Ü£¬´íÎó£º" + e.Message);
+		ShowMessage("错误信息" + e.Message);
 		return;
 	}
 }
@@ -430,6 +428,7 @@ void __fastcall TFormMain::IdUDPServerDeviceUDPRead(TIdUDPListenerThread *AThrea
 {
 	UdpClientIp = ABinding->PeerIP;
 	UdpClientPort = ABinding->PeerPort;
+
 	if (m_pbsScanner)
 	{
 		m_pbsScanner->Scan();
