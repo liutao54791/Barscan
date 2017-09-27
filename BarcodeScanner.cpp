@@ -4,16 +4,16 @@
 #pragma hdrstop
 #include <tchar.h>
 //---------------------------------------------------------------------------
-USEFORM("param\UnitDlgScannerConfig.cpp", DlgScannerConfig);
-USEFORM("param\UnitDlgScannerEdit.cpp", DlgScannerEdit);
-USEFORM("param\UnitDlgCommEdit.cpp", DlgCommEdit);
 USEFORM("param\UnitDlgGroupEdit.cpp", DlgGroupEdit);
+USEFORM("param\UnitDlgScannerConfig.cpp", DlgScannerConfig);
+USEFORM("param\UnitDlgBarcodeHeaderEdit.cpp", DlgBarcodeHeaderEdit);
+USEFORM("param\UnitDlgCommEdit.cpp", DlgCommEdit);
+USEFORM("param\UnitDlgScannerEdit.cpp", DlgScannerEdit);
 USEFORM("UnitFormMain.cpp", FormMain);
 USEFORM("UnitDataModuleMain.cpp", DataModuleMain); /* TDataModule: File Type */
 USEFORM("base\UnitDialogBase.cpp", DialogBase);
 USEFORM("base\UnitFormBase.cpp", FormBase);
 USEFORM("base\UnitFormProgressbar.cpp", FormProgressbar);
-USEFORM("param\UnitDlgBarcodeHeaderEdit.cpp", DlgBarcodeHeaderEdit);
 //---------------------------------------------------------------------------
 int WINAPI _tWinMain(HINSTANCE, HINSTANCE, LPTSTR, int)
 {

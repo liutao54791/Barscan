@@ -10,7 +10,7 @@
 // ************************************************************************ //
 
 // $Rev: 52393 $
-// File generated on 2017/9/25 14:50:37 from Type Library described below.
+// File generated on 2017/9/26 9:57:22 from Type Library described below.
 
 // ************************************************************************  //
 // Type Lib: D:\WorkSpace\BarcodeScanner\workengine.dll (1)

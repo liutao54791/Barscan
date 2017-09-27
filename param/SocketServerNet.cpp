@@ -133,7 +133,6 @@ CServerNet::~CServerNet()
 
 SocketStatus CServerNet::Init(int port )
 {
-    SocketStatus rlt = SocketError;
 
     SocketServer = new TServerSocket(Application);
     SocketServer->Port = port;  
@@ -143,8 +142,6 @@ SocketStatus CServerNet::Init(int port )
     SocketServer->OnClientDisconnect = ServerClientDisconnect;
     SocketServer->OnClientRead = ServerRead;
     //SocketServer->OnGetThread = GetThread;      /**********************阻塞模式*****************/
-
-    rlt = SocketOk;
 
     return SocketOk;
 }
@@ -257,29 +254,17 @@ void TidServerNet::Stop()
     }
 }
 
-void __fastcall TidServerNet::IdTCPServerMExecute(TIdContext *AContext)
+BSTR __fastcall TidServerNet::BuildMessage(char* Buff,int Len)
 {
-    TBytes buf;
-    int RecLen =  AContext->Connection->IOHandler->InputBuffer->Size;
-    String peerIP = AContext->Binding->PeerIP;
-    int peerport = AContext->Binding->PeerPort;
-    if(RecLen > 0)
-    {
-       AContext->Connection->IOHandler->ReadBytes(buf,RecLen,false);
-    }
-    char* DataBuf;
-    for (int i = 0; i < RecLen; i++)
-    {
-        DataBuf[i] = buf[i];
-    }
-    WideString strMessage((char*)DataBuf,RecLen);
-    delete DataBuf;
+    BSTR Message;
+
+    WideString strMessage((char*)Buff,Len);
 
     TCOMICommonMessage pcmMessage = CoCommonMessage::Create();
     BSTR strXmlMessage = strMessage.c_bstr();
     pcmMessage->set_XmlMessage(strXmlMessage);
 
-    /* get Type */
+    //get Type 
     BSTR strPath = ::SysAllocString(L"CommonMessage/Header/Type");
     BSTR strText = pcmMessage->GetNodeText(strPath);
     WideString strType = strText;
@@ -287,50 +272,199 @@ void __fastcall TidServerNet::IdTCPServerMExecute(TIdContext *AContext)
     ::SysFreeString(strPath);
     ::SysFreeString(strText);
 
-    /* get SenderId */
+    // get SenderId 
     strPath = ::SysAllocString(L"CommonMessage/Header/SenderId");
     strText = pcmMessage->GetNodeText(strPath);
     WideString strSenderId = strText;
     ::SysFreeString(strPath);
     ::SysFreeString(strText);
 
-    /* get ProductId */
+    // get ProductId
     strPath = ::SysAllocString(L"CommonMessage/Content/ProductId");
     strText = pcmMessage->GetNodeText(strPath);
     WideString strProductId = strText;
     ::SysFreeString(strPath);
     ::SysFreeString(strText);
 
-    /* get ProcedureId */
+    // get ProcedureId
     strPath = ::SysAllocString(L"CommonMessage/Content/ProcedureId");
     strText = pcmMessage->GetNodeText(strPath);
     WideString strProcedureId = strText;
-    int nProcedureId = strProcedureId.ToInt();
     ::SysFreeString(strPath);
     ::SysFreeString(strText);
 
+    WideString XmlMessage; //根据Type存放命令
+
     TADOQuery* pADOQuery = new TADOQuery(NULL);
     pADOQuery->Connection = DataModuleMain->ADOConnectionMain;
-    String strSQL ="SELECT HEADER_ID,BAR_VALUE,SCANNER_ID \
-        FROM BARCODE_VALUE \
-        WHERE PROCESS_ID = " + strProcedureId;
 
     switch(nCommandType)
     {
         case 1:
         {
+            String strSQL ="SELECT PROCEDURE_ID,BARCODE,TIME,STATE,AUX \
+            FROM BARCODE_VALUE \
+            WHERE PROCEDURE_ID  = " + strProcedureId + " AND STATE = 0 \
+            ORDER BY DATE ASC";
+
+            pADOQuery->Close();
+            pADOQuery->SQL->Text = strSQL;
+            pADOQuery->Open();
+
+            pADOQuery->Last();
+
+            XmlMessage = "<CommonMessage>"
+            "<Header>"
+                "<Type>255</Type>"
+                "<SenderId>0</SenderId>"
+            "</Header>"
+            "<Content>"
+                "<ProductId>1</ProductId>"
+                "<ProductBarcode>20170215000001</ProductBarcode>"
+                "<ProcedureId>1</ProcedureId>"
+                "<Result>0</Result>"
+            "</Content>"
+            "</CommonMessage>";
+
+            BSTR strTmp = XmlMessage.c_bstr();
+            pcmMessage->set_XmlMessage(strTmp);
+
+            strPath = ::SysAllocString(L"CommonMessage/Header/Type");
+            strType = "255";
+            pcmMessage->SetNodeText(strPath,strType.c_bstr());
+        
+            ::SysReAllocString(&strPath, L"CommonMessage/Header/SenderId");
+            WideString strValue = strSenderId;
+            pcmMessage->SetNodeText(strPath,strValue.c_bstr());
+        
+            //ProductID
+            ::SysReAllocString(&strPath, L"CommonMessage/Content/ProductId");
+            strValue = strProductId;
+            pcmMessage->SetNodeText(strPath,strValue.c_bstr());
+        
+            //ProductBarcode
+            ::SysReAllocString(&strPath, L"CommonMessage/Content/ProductBarcode");
+            strValue = pADOQuery->FieldByName("BARCODE")->AsString;
+            pcmMessage->SetNodeText(strPath,strValue.c_bstr());
+        
+            ::SysReAllocString(&strPath, L"CommonMessage/Content/ProcedureId");
+            strValue = String(pADOQuery->FieldByName("PROCESS_ID")->AsInteger);
+            pcmMessage->SetNodeText(strPath,strValue.c_bstr());
+        
+            ::SysReAllocString(&strPath, L"CommonMessage/Content/Result");
+            WideString strResult = "0";
+            pcmMessage->SetNodeText(strPath,strResult.c_bstr());
+            ::SysFreeString(strPath);
+            
+            Message = pcmMessage->get_XmlMessage();
+        
             break;
         }
         case 2:
-        {
+        {   
+
+            strPath = ::SysAllocString(L"CommonMessage/Content/State");
+            strText = pcmMessage->GetNodeText(strPath);
+            WideString StateToUpadate = strText;
+            ::SysFreeString(strPath);
+            ::SysFreeString(strText);
+
+            strPath = ::SysAllocString(L"CommonMessage/Content/ProductBarcode");
+            strText = pcmMessage->GetNodeText(strPath);
+            WideString BarCode = strText;
+
+            ::SysFreeString(strPath);
+            ::SysFreeString(strText);
+
+            pADOQuery->Connection->BeginTrans();
+            String strSQL = "UPDATE BARCODE_VALUE SET ";
+            strSQL += "STATE='" + StateToUpadate + "' ";
+            strSQL += " WHERE BARCODE=" + BarCode + " AND PROCEDURE_ID = " + strProcedureId;
+
+            pADOQuery->Close();
+            pADOQuery->SQL->Text = strSQL;
+            pADOQuery->ExecSQL();
+            
+            pADOQuery->Connection->CommitTrans();
+
+            XmlMessage = "<CommonMessage>"
+                "<Header>"
+                    "<Type>254</Type>"
+                    "<SenderId>1.0.1.0.1</SenderId>"
+                    "<SenderName>engine</SenderName>"
+                "</Header>"
+                "<Content>"
+                    "<ProductId>1</ProductId>"
+                    "<ProductBarcode>20170215000001</ProductBarcode>"
+                    "<ProcedureId>1.0.1.2.1</ProcedureId>"
+                    "<Result>0</Result>"
+                "</Content>"
+            "</CommonMessage>";
+
+            BSTR strTmp = XmlMessage.c_bstr();
+            pcmMessage->set_XmlMessage(strTmp);
+            strPath = ::SysAllocString(L"CommonMessage/Header/Type");
+            strType = "254";
+            pcmMessage->SetNodeText(strPath,strType.c_bstr());
+        
+            ::SysReAllocString(&strPath, L"CommonMessage/Header/SenderId");
+            WideString strValue = strSenderId;
+            pcmMessage->SetNodeText(strPath,strValue.c_bstr());
+        
+            //ProductID
+            ::SysReAllocString(&strPath, L"CommonMessage/Content/ProductId");
+            strValue = strProductId;
+            pcmMessage->SetNodeText(strPath,strValue.c_bstr());
+        
+            //ProductBarcode
+            ::SysReAllocString(&strPath, L"CommonMessage/Content/ProductBarcode");
+            strValue = BarCode;
+            pcmMessage->SetNodeText(strPath,strValue.c_bstr());
+        
+            ::SysReAllocString(&strPath, L"CommonMessage/Content/ProcedureId");
+            strValue = strProcedureId;
+            pcmMessage->SetNodeText(strPath,strValue.c_bstr());
+        
+            ::SysReAllocString(&strPath, L"CommonMessage/Content/Result");
+            WideString strResult = "0";
+            pcmMessage->SetNodeText(strPath,strResult.c_bstr());
+            ::SysFreeString(strPath);
+        
+            Message = pcmMessage->get_XmlMessage();
             break;
         }
         default:
         break;
-
     }
 
-    AContext->Connection->IOHandler->Write(buf);
+    delete pADOQuery;
+    return Message;
+}
 
+void __fastcall TidServerNet::IdTCPServerMExecute(TIdContext *AContext)
+{
+
+    int RecLen =  AContext->Connection->IOHandler->InputBuffer->Size;
+    if (RecLen == 0)
+    {
+        return;
+    }
+
+    TBytes buf;
+    String peerIP = AContext->Binding->PeerIP;
+    int peerport = AContext->Binding->PeerPort;
+
+    if(RecLen > 0)
+    {
+       AContext->Connection->IOHandler->ReadBytes(buf,RecLen);
+    }
+    char* DataBuf = (char*)malloc(1024);
+    for (int i = 0; i < RecLen; i++)
+    {
+        DataBuf[i] = buf[i];
+    }
+    BSTR Message = BuildMessage(DataBuf,RecLen);
+    free(DataBuf);
+    AContext->Connection->IOHandler->Write(Message);
 }
 //---------------------------------------------------------------------------

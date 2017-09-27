@@ -125,6 +125,7 @@ public:
     void __fastcall ServerRead(TObject* Sender, TCustomWinSocket * Socket);
 	void __fastcall GetThread(TObject *Sender, TServerClientWinSocket* ClientSocket,TServerClientThread* &SocketThread);
 private:
+	BSTR __fastcall BuildMessage(char* Buff,int Len);
     TServerSocket * SocketServer;
     int ConNum;
 };
@@ -140,6 +141,7 @@ public:
 	void __fastcall IdTCPServerMExecute(TIdContext *AContext);
 private:
 	TIdTCPServer* IdTCPServer;
+	BSTR __fastcall BuildMessage(char* Buff,int Len);
 };
 
 #endif

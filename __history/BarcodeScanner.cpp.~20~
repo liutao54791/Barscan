@@ -4,13 +4,16 @@
 #pragma hdrstop
 #include <tchar.h>
 //---------------------------------------------------------------------------
-USEFORM("param\UnitDlgScannerConfig.cpp", DialogBaseScannerConfig);
+USEFORM("param\UnitDlgScannerConfig.cpp", DlgScannerConfig);
+USEFORM("param\UnitDlgScannerEdit.cpp", DlgScannerEdit);
+USEFORM("param\UnitDlgCommEdit.cpp", DlgCommEdit);
+USEFORM("param\UnitDlgGroupEdit.cpp", DlgGroupEdit);
 USEFORM("UnitFormMain.cpp", FormMain);
 USEFORM("UnitDataModuleMain.cpp", DataModuleMain); /* TDataModule: File Type */
 USEFORM("base\UnitDialogBase.cpp", DialogBase);
-USEFORM("base\UnitFormProgressbar.cpp", FormProgressbar);
 USEFORM("base\UnitFormBase.cpp", FormBase);
-USEFORM("param\UnitDlgGroupEdit.cpp", DialogGroupEdit);
+USEFORM("base\UnitFormProgressbar.cpp", FormProgressbar);
+USEFORM("param\UnitDlgBarcodeHeaderEdit.cpp", DlgBarcodeHeaderEdit);
 //---------------------------------------------------------------------------
 int WINAPI _tWinMain(HINSTANCE, HINSTANCE, LPTSTR, int)
 {
@@ -20,8 +23,11 @@ int WINAPI _tWinMain(HINSTANCE, HINSTANCE, LPTSTR, int)
 		Application->MainFormOnTaskBar = true;
 		Application->CreateForm(__classid(TDataModuleMain), &DataModuleMain);
 		Application->CreateForm(__classid(TFormMain), &FormMain);
-		Application->CreateForm(__classid(TDialogBaseScannerConfig), &DialogBaseScannerConfig);
-		Application->CreateForm(__classid(TDialogGroupEdit), &DialogGroupEdit);
+		Application->CreateForm(__classid(TDlgScannerConfig), &DlgScannerConfig);
+		Application->CreateForm(__classid(TDlgGroupEdit), &DlgGroupEdit);
+		Application->CreateForm(__classid(TDlgScannerEdit), &DlgScannerEdit);
+		Application->CreateForm(__classid(TDlgBarcodeHeaderEdit), &DlgBarcodeHeaderEdit);
+		Application->CreateForm(__classid(TDlgCommEdit), &DlgCommEdit);
 		Application->Run();
 	}
 	catch (Exception &exception)
