@@ -293,7 +293,7 @@ BSTR __fastcall TidServerNet::BuildMessage(char* Buff,int Len)
     ::SysFreeString(strPath);
     ::SysFreeString(strText);
 
-    WideString XmlMessage; //根据Type存放命令
+    WideString XmlMessage; //根据Type存放回复命令
 
     TADOQuery* pADOQuery = new TADOQuery(NULL);
     pADOQuery->Connection = DataModuleMain->ADOConnectionMain;

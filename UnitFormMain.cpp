@@ -250,6 +250,7 @@ void TFormMain::LoadDefaultConfigure()
 		}
 	}
 
+	m_ProcedureId = pifReader->ReadString("PROCEDURE","PROCEDURE_ID","");
 	m_pcsTcpClient->Host = pifReader->ReadString("DEVICE","IP","");
 	m_pcsTcpClient->Port = pifReader->ReadInteger("DEVICE","PORT",11240);
 	m_pcsTcpClient->Active = false;
@@ -311,7 +312,17 @@ void __fastcall TFormMain::OnBarcodeScanned(TMessage& pmMessage)
 		return;
 	}
 	else
+	{
+		if (pbBarcode->nTag == 1)
+		{
+			m_barode = strBarcode;
+		}
+		else
+		{
+			m_AuxBarcode = m_AuxBarcode + dxMemDataBarcode->FieldByName(String(pbBarcode->nTag))->AsString + ",";
+		}
 		m_nCurrentBarcodeCount++;
+	}
 
 	if (m_nCurrentBarcodeCount % m_nBarcodeCount)
 	{
@@ -324,8 +335,29 @@ void __fastcall TFormMain::OnBarcodeScanned(TMessage& pmMessage)
 		{
 			m_pcsTcpClient->Socket->SendBuf(bBuffer,nSize);
 		}*/
+		TADOQuery* pADOQuery = new TADOQuery(NULL);
+		pADOQuery->Connection = DataModuleMain->ADOConnectionMain;
+
+		pADOQuery->Connection->BeginTrans();
+		String strSQL = "INSERT INTO BARCODE_VALUE (KEY_ID,PROCEDURE_ID,BARCODE,\
+				TIME,STATE,AUX) \
+				VALUES (" + String(m_nCurrentBarcodeCount) + ", \
+				" + m_ProcedureId + ", \
+				" + m_barode + ", \
+				'" + DateToStr(Date()) + "',\
+				'" + "0" + "',\
+				'" + m_AuxBarcode + "')";
+
+		pADOQuery->Close();
+		pADOQuery->SQL->Text = strSQL;
+		pADOQuery->ExecSQL();
+		pADOQuery->Connection->CommitTrans();
+
+		delete pADOQuery;
+
 		AnsiString text = "success";
 		IdUDPServerDevice->Send(UdpClientIp, UdpClientPort, text);
+
 		dxMemDataBarcode->Append();
 	}
 	else

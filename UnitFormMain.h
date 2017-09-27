@@ -179,6 +179,9 @@ private:
 	String UdpClientIp;
 	int UdpClientPort;
 
+	String m_barode ;
+	String m_AuxBarcode;
+	String m_ProcedureId;
 
 BEGIN_MESSAGE_MAP
 	VCL_MESSAGE_HANDLER(WM_BARCODE_SCANNED,TMessage,OnBarcodeScanned)
