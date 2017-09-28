@@ -187,5 +187,3 @@ void __fastcall TDlgScannerEdit::FormShow(TObject *Sender)
 	LoadScannerInfo();
 }
 //---------------------------------------------------------------------------
-
-

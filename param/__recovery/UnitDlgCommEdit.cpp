@@ -2,15 +2,30 @@
 
 #include <vcl.h>
 #pragma hdrstop
+#include <iostream.h>
 
-#include "UnitDlgScannerEdit.h"
-#include "UnitDataModuleMain.h"
+#include "UnitDlgCommEdit.h"
+
+#include "SocketServerNet.h"
+
+#include <System.IniFiles.hpp>
 //---------------------------------------------------------------------------
 #pragma package(smart_init)
 #pragma link "cxButtons"
+#pragma link "cxClasses"
+#pragma link "cxContainer"
+#pragma link "cxControls"
+#pragma link "cxEdit"
 #pragma link "cxGraphics"
 #pragma link "cxLookAndFeelPainters"
 #pragma link "cxLookAndFeels"
+#pragma link "cxMaskEdit"
+#pragma link "cxSpinEdit"
+#pragma link "cxTextEdit"
+#pragma link "dxLayoutContainer"
+#pragma link "dxLayoutControl"
+#pragma link "dxLayoutcxEditAdapters"
+#pragma link "dxLayoutLookAndFeels"
 #pragma link "dxSkinBlack"
 #pragma link "dxSkinBlue"
 #pragma link "dxSkinBlueprint"
@@ -46,6 +61,7 @@
 #pragma link "dxSkinOffice2016Dark"
 #pragma link "dxSkinPumpkin"
 #pragma link "dxSkinsCore"
+#pragma link "dxSkinscxPCPainter"
 #pragma link "dxSkinsDefaultPainters"
 #pragma link "dxSkinSeven"
 #pragma link "dxSkinSevenClassic"
@@ -64,94 +80,82 @@
 #pragma link "dxSkinWhiteprint"
 #pragma link "dxSkinXmas2008Blue"
 #pragma link "UnitDialogBase"
-#pragma link "cxClasses"
-#pragma link "cxContainer"
-#pragma link "cxControls"
-#pragma link "cxDropDownEdit"
-#pragma link "cxEdit"
-#pragma link "cxMaskEdit"
-#pragma link "cxTextEdit"
-#pragma link "dxLayoutContainer"
-#pragma link "dxLayoutControl"
-#pragma link "dxLayoutcxEditAdapters"
-#pragma link "dxLayoutLookAndFeels"
-#pragma link "dxSkinscxPCPainter"
-#pragma link "cxMemo"
-#pragma resource "*.dfm"
-TDlgScannerEdit *DlgScannerEdit;
+#pragma link "dxScreenTip"
+#pragma resource "*.dfm"   //#pragma resource "*.dfm"表示把*.dfm文件中的资源加入工程。*.dfm中包括窗体外观的定义。
+TDlgCommEdit *DlgCommEdit;
+
 //---------------------------------------------------------------------------
-__fastcall TDlgScannerEdit::TDlgScannerEdit(TComponent* Owner)
+__fastcall TDlgCommEdit::TDlgCommEdit(TComponent* Owner)
 	: TDialogBase(Owner)
 {
+
+}
+
+//---------------------------------------------------------------------------
+void TDlgCommEdit::LoadConfigure()
+{
+	String strFileName = ChangeFileExt(ParamStr(0),".ini");
+	TIniFile* pifReader = new TIniFile(strFileName);
+
+	cxTextEditIp->Text = pifReader->ReadString("DEVICE","IP","");
+	cxSpinEditPort->Value = pifReader->ReadInteger("DEVICE","PORT",11240);
+
+	cxTextEditUDPIp->Text = pifReader->ReadString("UDPSERVER","IP","");
+	cxSpinEditUDPPort->Value = pifReader->ReadInteger("UDPSERVER","PORT",11260);
+
+	char    Buffer[64];
+	HOSTENT FAR *pHost;
+	String  IPAddress;
+
+	gethostname(Buffer, 64);
+	pHost  = gethostbyname(Buffer);
+	IPAddress = inet_ntoa(*(struct in_addr*)pHost->h_addr_list[0]);
+
+	cxTextTCPServerIP->Text = IPAddress;
+	delete pifReader;
 }
 //---------------------------------------------------------------------------
-void TDlgScannerEdit::LoadScannerInfo()
+void TDlgCommEdit::SaveConfigure()
 {
-	cxComboBoxGroup->Text = m_sScanner.strGroupName;
+	String strFileName = ChangeFileExt(ParamStr(0),".ini");
+	TIniFile* pifWriter = new TIniFile(strFileName);
 
-	if (m_sScanner.nScannerIndex > 0)
-	{
-		//tag
-		cxComboBoxTag->Text = String(m_sScanner.nScannerTag);
-		//name
-		cxTextEditScanner->Text = m_sScanner.strScannerName;
-		//param
-		cxTextEditParam->Text = m_sScanner.strScannerParam;
-		//note
-		cxMemoNote->Text = m_sScanner.strNote;
-	}
+	pifWriter->WriteString("DEVICE","IP",cxTextEditIp->Text );
+	pifWriter->WriteInteger("DEVICE","PORT",cxSpinEditPort->Value);
+
+	pifWriter->WriteString("UDPSERVER","IP",cxTextEditUDPIp->Text );
+	pifWriter->WriteInteger("UDPSERVER","PORT",cxSpinEditUDPPort->Value);
+
+	delete pifWriter;
 }
-//---------------------------------------------------------------------------
-void TDlgScannerEdit::SaveScannerInfo()
-{
-	TADOQuery* pADOQuery = new TADOQuery(NULL);
-	pADOQuery->Connection = DataModuleMain->ADOConnectionMain;
 
-	pADOQuery->Connection->BeginTrans();
-	try
+void __fastcall TDlgCommEdit::cxButtonOkClick(TObject *Sender)
+{
+	SaveConfigure();
+
+	static TidServerNet* ServerNet = NULL;
+	if (ServerNet == NULL)
 	{
-		String strSQL = "";
-		if (m_sScanner.nScannerIndex > 0)
+		ServerNet = new TidServerNet();
+		if (ServerNet->Init(cxSpinEditTCPServerPort->Value) == SocketOk)
 		{
-			strSQL = "UPDATE SCANNER SET ";
-			strSQL += "SCANNER_NAME='" + m_sScanner.strScannerName + "' ";
-			strSQL += "SCANNER_TAG=" + String(m_sScanner.nScannerTag);
-			strSQL += ",NOTE='" + m_sScanner.strNote + "'";
-			strSQL += " WHERE SCANNER_ID=" + String(m_sScanner.nScannerIndex);
+			ServerNet->Run();
+			
 		}
-		else
-		{
-			String strSQL = "SELECT MAX(SCANNER_ID) AS MAXID FROM SCANNER";
-			pADOQuery->Close();
-			pADOQuery->SQL->Text = strSQL;
-			pADOQuery->Open();
-			m_sScanner.nScannerIndex = pADOQuery->FieldByName("MAXID")->AsInteger + 1;
-
-			strSQL = "INSERT INTO SCANNER (SCANNER_ID,GROUP_ID,SCANNER_TAG,\
-				SCANNER_NAME,SCANNER_PARAM,NOTE) \
-				VALUES (" + String(m_sScanner.nScannerIndex) + ", \
-				" + String(m_sScanner.nGroupIndex) + "', \
-				" + String(m_sScanner.nScannerTag) + "', \
-				'" + m_sScanner.strScannerName + "',\
-				'" + m_sScanner.strScannerParam + "',\
-				'" + m_sScanner.strNote + "')";
-		}
-
-		pADOQuery->Close();
-		pADOQuery->SQL->Text = strSQL;
-		pADOQuery->ExecSQL();
-		pADOQuery->Connection->CommitTrans();
-	}
-	catch (Exception& e)
+	}else
 	{
-		pADOQuery->Connection->RollbackTrans();
-		delete pADOQuery;
-		throw e;
+		ShowMessage(cxTextEditUDPIp->Text.c_str());
+		ShowMessage("TCP Server Already Run");
 	}
+
 }
 //---------------------------------------------------------------------------
-void TDlgScannerEdit::SetScannerInfo(SCANNER sScanner)
+void __fastcall TDlgCommEdit::FormShow(TObject *Sender)
 {
-	m_sScanner = sScanner;
+	LoadConfigure();
 }
 //---------------------------------------------------------------------------
+
+
+
+

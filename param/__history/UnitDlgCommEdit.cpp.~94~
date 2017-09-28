@@ -132,17 +132,31 @@ void TDlgCommEdit::SaveConfigure()
 void __fastcall TDlgCommEdit::cxButtonOkClick(TObject *Sender)
 {
 	SaveConfigure();
-	static TidServerNet* ServerNet = new TidServerNet();
-	if (!ServerNet->Active)
+	TStringList* Token = new TStringList();
+
+	static TidServerNet* ServerNet = NULL;
+	if (ServerNet == NULL)
 	{
-		ServerNet->Init(cxSpinEditTCPServerPort->Value);
-		ServerNet->Run();
+		ServerNet = new TidServerNet();
+		if (ServerNet->Init(cxSpinEditTCPServerPort->Value) == SocketOk)
+		{
+			ServerNet->Run();
+ 			ExtractStrings("." , "" , cxTextEditUDPIp->Text.c_str(),Token);
+
+		}
+	}else
+	{
+		ShowMessage("TCP Server Already Run");
 	}
+
 }
 //---------------------------------------------------------------------------
 void __fastcall TDlgCommEdit::FormShow(TObject *Sender)
 {
 	LoadConfigure();
 }
-//---------------------------------------------------------------------------String CmdString
+//---------------------------------------------------------------------------
+
+
+
 

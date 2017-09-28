@@ -3,7 +3,7 @@
 #include <vcl.h>
 #pragma hdrstop
 #include <iostream.h>
-
+#include <sstream>
 #include "UnitDlgCommEdit.h"
 
 #include "SocketServerNet.h"
@@ -87,7 +87,6 @@ TDlgCommEdit *DlgCommEdit;
 //---------------------------------------------------------------------------
 __fastcall TDlgCommEdit::TDlgCommEdit(TComponent* Owner)
 	: TDialogBase(Owner)
-	, ServerNet(NULL)
 {
 
 }
@@ -133,12 +132,20 @@ void TDlgCommEdit::SaveConfigure()
 void __fastcall TDlgCommEdit::cxButtonOkClick(TObject *Sender)
 {
 	SaveConfigure();
+	char token[1024];
+
+	static TidServerNet* ServerNet = NULL;
 	if (ServerNet == NULL)
 	{
 		ServerNet = new TidServerNet();
 		if (ServerNet->Init(cxSpinEditTCPServerPort->Value) == SocketOk)
 		{
 			ServerNet->Run();
+			while((token = strtok(cxTextEditUDPIp->Text.c_str(), '.')) != NULL)
+			{
+				ShowMessage(token);
+			}
+
 		}
 	}else
 	{

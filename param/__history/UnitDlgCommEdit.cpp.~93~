@@ -88,14 +88,8 @@ TDlgCommEdit *DlgCommEdit;
 __fastcall TDlgCommEdit::TDlgCommEdit(TComponent* Owner)
 	: TDialogBase(Owner)
 {
-	WORD wVersionRequested;
-	WSADATA wsadata;
-	int err;
-	wVersionRequested=MAKEWORD(1,1);
-	err=WSAStartup(wVersionRequested,&wsadata);
-	if (err!=0)
-	 return;
-	}
+
+}
 
 //---------------------------------------------------------------------------
 void TDlgCommEdit::LoadConfigure()
@@ -109,6 +103,15 @@ void TDlgCommEdit::LoadConfigure()
 	cxTextEditUDPIp->Text = pifReader->ReadString("UDPSERVER","IP","");
 	cxSpinEditUDPPort->Value = pifReader->ReadInteger("UDPSERVER","PORT",11260);
 
+	char    Buffer[64];
+	HOSTENT FAR *pHost;
+	String  IPAddress;
+
+	gethostname(Buffer, 64);
+	pHost  = gethostbyname(Buffer);
+	IPAddress = inet_ntoa(*(struct in_addr*)pHost->h_addr_list[0]);
+
+	cxTextTCPServerIP->Text = IPAddress;
 	delete pifReader;
 }
 //---------------------------------------------------------------------------
@@ -129,34 +132,31 @@ void TDlgCommEdit::SaveConfigure()
 void __fastcall TDlgCommEdit::cxButtonOkClick(TObject *Sender)
 {
 	SaveConfigure();
-	/*CServerNet* ServerNet = new CServerNet();
-	ServerNet->Init(cxSpinEditTCPServerPort->Value);
-	ServerNet->Run();*/
+	TStringList* Token = new TStringList();
 
-	TIdTCPServer* IdTCPServer1 = new  TIdTCPServer();
-	IdTCPServer1->OnExecute = IdTCPServer1Execute;
-	IdTCPServer1->MaxConnections = 10;
-	IdTCPServer1->DefaultPort = cxSpinEditTCPServerPort->Value;
-	IdTCPServer1->Active = true;
+	static TidServerNet* ServerNet = NULL;
+	if (ServerNet == NULL)
+	{
+		ServerNet = new TidServerNet();
+		if (ServerNet->Init(cxSpinEditTCPServerPort->Value) == SocketOk)
+		{
+			ServerNet->Run();
+ 			ExtractStrings('.','', cxTextEditUDPIp->Text.c_str(),Token);
+
+		}
+	}else
+	{
+		ShowMessage("TCP Server Already Run");
+	}
+
 }
 //---------------------------------------------------------------------------
 void __fastcall TDlgCommEdit::FormShow(TObject *Sender)
 {
 	LoadConfigure();
 }
-//---------------------------------------------------------------------------String CmdString
-void __fastcall TDlgCommEdit::IdTCPServer1Execute(TIdContext *AContext)
-{
-	 RecLen = AContext->Connection->IOHandler->InputBuffer->Size;
-	 if(RecLen > 0)
-	 {
-		AContext->Connection->IOHandler->ReadBytes(buf,2,false);
-	 }
-	 if(buf[1] == 0x23)
-	 {
-		AContext->Connection->IOHandler->Write(buf);
-	 }
-
-}
 //---------------------------------------------------------------------------
+
+
+
 

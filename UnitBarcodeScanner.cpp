@@ -79,11 +79,22 @@ void THoneyWellBarcodeScanner::AddScanner(SCANNER_INFO siScanner)
 		CLSCTX_INPROC_SERVER,
 		IID_ISerialPort,
 		(void**)&pspSerialPort);
+	String Parameter = siScanner.strParam;
 
+	AnsiString str;
+	TStringList* lstLine = new TStringList;
+	str = StringReplace(Parameter,".", "\r\n", TReplaceFlags() << rfReplaceAll);
+	lstLine->Text = str;
+	
 	pspSerialPort->Tag = siScanner.nTag;
 	//TODO: parameter
-	
+	pspSerialPort->Baudrate   =  lstLine->Strings[0].ToInt();
+	pspSerialPort->ByteSize   =  lstLine->Strings[1].ToInt();
+	pspSerialPort->StopBits   =  lstLine->Strings[2].ToInt();
+	pspSerialPort->ParityMode =  lstLine->Strings[3].ToInt();
 	m_plSerialPortList->Add(pspSerialPort);
+
+	delete lstLine;
 
 	TSerialPortEventSink* pesEventSink = new TSerialPortEventSink;
 	pesEventSink->OnRead = OnRead;

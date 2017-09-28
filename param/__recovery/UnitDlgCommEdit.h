@@ -1,16 +1,27 @@
 //---------------------------------------------------------------------------
 
-#ifndef UnitDlgScannerEditH
-#define UnitDlgScannerEditH
+#ifndef UnitDlgCommEditH
+#define UnitDlgCommEditH
 //---------------------------------------------------------------------------
 #include <System.Classes.hpp>
 #include <Vcl.Controls.hpp>
 #include <Vcl.StdCtrls.hpp>
 #include <Vcl.Forms.hpp>
 #include "cxButtons.hpp"
+#include "cxClasses.hpp"
+#include "cxContainer.hpp"
+#include "cxControls.hpp"
+#include "cxEdit.hpp"
 #include "cxGraphics.hpp"
 #include "cxLookAndFeelPainters.hpp"
 #include "cxLookAndFeels.hpp"
+#include "cxMaskEdit.hpp"
+#include "cxSpinEdit.hpp"
+#include "cxTextEdit.hpp"
+#include "dxLayoutContainer.hpp"
+#include "dxLayoutControl.hpp"
+#include "dxLayoutcxEditAdapters.hpp"
+#include "dxLayoutLookAndFeels.hpp"
 #include "dxSkinBlack.hpp"
 #include "dxSkinBlue.hpp"
 #include "dxSkinBlueprint.hpp"
@@ -46,6 +57,7 @@
 #include "dxSkinOffice2016Dark.hpp"
 #include "dxSkinPumpkin.hpp"
 #include "dxSkinsCore.hpp"
+#include "dxSkinscxPCPainter.hpp"
 #include "dxSkinsDefaultPainters.hpp"
 #include "dxSkinSeven.hpp"
 #include "dxSkinSevenClassic.hpp"
@@ -66,46 +78,52 @@
 #include "UnitDialogBase.h"
 #include <Vcl.ExtCtrls.hpp>
 #include <Vcl.Menus.hpp>
-#include "cxClasses.hpp"
-#include "cxContainer.hpp"
-#include "cxControls.hpp"
-#include "cxDropDownEdit.hpp"
-#include "cxEdit.hpp"
-#include "cxMaskEdit.hpp"
-#include "cxTextEdit.hpp"
-#include "dxLayoutContainer.hpp"
-#include "dxLayoutControl.hpp"
-#include "dxLayoutcxEditAdapters.hpp"
-#include "dxLayoutLookAndFeels.hpp"
-#include "dxSkinscxPCPainter.hpp"
+#include <IdBaseComponent.hpp>
+#include <IdComponent.hpp>
+#include <IdCustomTCPServer.hpp>
+#include <IdTCPServer.hpp>
+#include <IdSocketHandle.hpp>
+#include <IdContext.hpp>
+#include <System.SysUtils.hpp>
+#include "dxScreenTip.hpp"
+#include <System.Win.ScktComp.hpp>
+
+#include "SocketServerNet.h"
 //---------------------------------------------------------------------------
-typedef struct _tagSCANNER
-{
-	int nGroupIndex;
-	int nScannerIndex;
-	int nScannerTag;
-	String strScannerName;
-	String strScannerParam;
-}SCANNER,*PSCANNER;
-//---------------------------------------------------------------------------
-class TDialogScannerEdit : public TDialogBase
+class TDlgCommEdit : public TDialogBase
 {
 __published:	// IDE-managed Components
+	TdxLayoutLookAndFeelList *dxLayoutLookAndFeelListCom;
+	TdxLayoutCxLookAndFeel *dxLayoutCxLookAndFeel1;
 	TdxLayoutGroup *dxLayoutControl1Group_Root;
 	TdxLayoutControl *dxLayoutControl1;
-	TdxLayoutLookAndFeelList *dxLayoutLookAndFeelListLocal;
-	TdxLayoutCxLookAndFeel *dxLayoutCxLookAndFeel1;
-	TcxComboBox *cxComboBoxGroup;
+	TcxTextEdit *cxTextEditIp;
 	TdxLayoutItem *dxLayoutItem1;
-	TcxTextEdit *cxTextEditScanner;
+	TcxSpinEdit *cxSpinEditPort;
 	TdxLayoutItem *dxLayoutItem2;
-	TcxComboBox *cxComboBoxTag;
+	TdxLayoutGroup *dxLayoutGroup1;
+	TcxTextEdit *cxTextEditUDPIp;
 	TdxLayoutItem *dxLayoutItem3;
+	TcxSpinEdit *cxSpinEditUDPPort;
+	TdxLayoutItem *dxLayoutItem4;
+	TdxLayoutGroup *dxLayoutGroup2;
+	TdxScreenTipRepository *dxScreenTipRepository1;
+	TcxTextEdit *cxTextTCPServerIP;
+	TdxLayoutItem *dxLayoutItem5;
+	TcxSpinEdit *cxSpinEditTCPServerPort;
+	TdxLayoutItem *dxLayoutItem6;
+	TdxLayoutGroup *dxLayoutGroup3;
+	void __fastcall cxButtonOkClick(TObject *Sender);
+	void __fastcall FormShow(TObject *Sender);
+
 private:	// User declarations
+	void LoadConfigure();
+	void SaveConfigure();  
 public:		// User declarations
-	__fastcall TDialogScannerEdit(TComponent* Owner);
+	__fastcall TDlgCommEdit(TComponent* Owner);
+
 };
 //---------------------------------------------------------------------------
-extern PACKAGE TDialogScannerEdit *DialogScannerEdit;
+extern PACKAGE TDlgCommEdit *DlgCommEdit;
 //---------------------------------------------------------------------------
 #endif

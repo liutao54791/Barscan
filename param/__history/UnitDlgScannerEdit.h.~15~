@@ -78,34 +78,51 @@
 #include "dxLayoutcxEditAdapters.hpp"
 #include "dxLayoutLookAndFeels.hpp"
 #include "dxSkinscxPCPainter.hpp"
+#include "cxMemo.hpp"
 //---------------------------------------------------------------------------
 typedef struct _tagSCANNER
 {
 	int nGroupIndex;
 	int nScannerIndex;
 	int nScannerTag;
+	String strGroupName;
 	String strScannerName;
 	String strScannerParam;
-}
+	String strNote;
+}SCANNER,*PSCANNER;
 //---------------------------------------------------------------------------
-class TDialogScannerEdit : public TDialogBase
+class TDlgScannerEdit : public TDialogBase
 {
 __published:	// IDE-managed Components
 	TdxLayoutGroup *dxLayoutControl1Group_Root;
 	TdxLayoutControl *dxLayoutControl1;
 	TdxLayoutLookAndFeelList *dxLayoutLookAndFeelListLocal;
 	TdxLayoutCxLookAndFeel *dxLayoutCxLookAndFeel1;
-	TcxComboBox *cxComboBoxGroup;
-	TdxLayoutItem *dxLayoutItem1;
 	TcxTextEdit *cxTextEditScanner;
 	TdxLayoutItem *dxLayoutItem2;
 	TcxComboBox *cxComboBoxTag;
 	TdxLayoutItem *dxLayoutItem3;
+	TcxTextEdit *cxTextEditParam;
+	TdxLayoutItem *dxLayoutItem4;
+	TcxMemo *cxMemoNote;
+	TdxLayoutItem *dxLayoutItem5;
+	TcxTextEdit *cxTextEditGroup;
+	TdxLayoutItem *dxLayoutItem1;
+	void __fastcall cxButtonOkClick(TObject *Sender);
+	void __fastcall FormShow(TObject *Sender);
+	void __fastcall cxComboBoxTagPropertiesChange(TObject *Sender);
+	void __fastcall cxTextEditGroupPropertiesChange(TObject *Sender);
 private:	// User declarations
+	void LoadScannerInfo();
+	void SaveScannerInfo();
 public:		// User declarations
-	__fastcall TDialogScannerEdit(TComponent* Owner);
+	__fastcall TDlgScannerEdit(TComponent* Owner);
+
+	void SetScannerInfo(SCANNER sScanner);
+private:
+	SCANNER m_sScanner;
 };
 //---------------------------------------------------------------------------
-extern PACKAGE TDialogScannerEdit *DialogScannerEdit;
+extern PACKAGE TDlgScannerEdit *DlgScannerEdit;
 //---------------------------------------------------------------------------
 #endif

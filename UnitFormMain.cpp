@@ -358,6 +358,9 @@ void __fastcall TFormMain::OnBarcodeScanned(TMessage& pmMessage)
 		AnsiString text = "success";
 		IdUDPServerDevice->Send(UdpClientIp, UdpClientPort, text);
 
+		m_barode = "";
+		m_AuxBarcode = "";
+		
 		dxMemDataBarcode->Append();
 	}
 	else

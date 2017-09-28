@@ -132,6 +132,8 @@ void TDlgCommEdit::SaveConfigure()
 void __fastcall TDlgCommEdit::cxButtonOkClick(TObject *Sender)
 {
 	SaveConfigure();
+	TStringList Token;
+
 	static TidServerNet* ServerNet = NULL;
 	if (ServerNet == NULL)
 	{
@@ -139,6 +141,8 @@ void __fastcall TDlgCommEdit::cxButtonOkClick(TObject *Sender)
 		if (ServerNet->Init(cxSpinEditTCPServerPort->Value) == SocketOk)
 		{
 			ServerNet->Run();
+ 			ExtractStrings('.','', cxTextEditUDPIp->Text.c_str(),Token);
+
 		}
 	}else
 	{
@@ -152,6 +156,7 @@ void __fastcall TDlgCommEdit::FormShow(TObject *Sender)
 	LoadConfigure();
 }
 //---------------------------------------------------------------------------
+
 
 
 

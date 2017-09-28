@@ -132,6 +132,7 @@ void TDlgCommEdit::SaveConfigure()
 void __fastcall TDlgCommEdit::cxButtonOkClick(TObject *Sender)
 {
 	SaveConfigure();
+
 	static TidServerNet* ServerNet = NULL;
 	if (ServerNet == NULL)
 	{
@@ -139,9 +140,11 @@ void __fastcall TDlgCommEdit::cxButtonOkClick(TObject *Sender)
 		if (ServerNet->Init(cxSpinEditTCPServerPort->Value) == SocketOk)
 		{
 			ServerNet->Run();
+			
 		}
 	}else
 	{
+		ShowMessage(cxTextEditUDPIp->Text.c_str());
 		ShowMessage("TCP Server Already Run");
 	}
 
