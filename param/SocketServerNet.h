@@ -116,6 +116,7 @@ class CServerNet
 public:
 	CServerNet();
 	virtual ~CServerNet();
+	static CServerNet* getInstance();
 	SocketStatus Init(int port);
     void Run();
     void Stop();
@@ -135,6 +136,7 @@ class TidServerNet
 public:
 	TidServerNet();
 	virtual ~TidServerNet();
+	static TidServerNet* getInstance();
 	SocketStatus Init(int port);
     void Run();
     void Stop();

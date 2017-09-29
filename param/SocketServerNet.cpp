@@ -214,6 +214,16 @@ TidServerNet::~TidServerNet()
     delete IdTCPServer;
 }
 
+TidServerNet* TidServerNet::getInstance()
+{
+    static TidServerNet* SocketServer = NULL;
+    if (SocketServer == NULL)
+    {
+        SocketServer = new TidServerNet();
+    }
+    return SocketServer;
+}
+
 SocketStatus TidServerNet::Init(int port)
 {
     if (IdTCPServer == NULL)
