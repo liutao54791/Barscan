@@ -335,33 +335,45 @@ void __fastcall TFormMain::OnBarcodeScanned(TMessage& pmMessage)
 		{
 			m_pcsTcpClient->Socket->SendBuf(bBuffer,nSize);
 		}*/
+
 		TADOQuery* pADOQuery = new TADOQuery(NULL);
 		pADOQuery->Connection = DataModuleMain->ADOConnectionMain;
 
-		pADOQuery->Connection->BeginTrans();
-		String strSQL = "INSERT INTO BARCODE_VALUE (KEY_ID,PROCEDURE_ID,BARCODE,\
-				TIME,STATE,AUX) \
-				VALUES (" + String(m_nCurrentBarcodeCount) + ", \
-				" + m_ProcedureId + ", \
-				" + m_barode + ", \
-				'" + DateToStr(Date()) + "',\
-				'" + "0" + "',\
-				'" + m_AuxBarcode + "')";
+        String strSQL ="SELECT PROCEDURE_ID,BARCODE,TIME,STATE,AUX \
+        FROM BARCODE_VALUE \
+        WHERE BARCODE  = " + m_barode;
 
-		pADOQuery->Close();
-		pADOQuery->SQL->Text = strSQL;
-		pADOQuery->ExecSQL();
-		pADOQuery->Connection->CommitTrans();
+        pADOQuery->Close();
+        pADOQuery->SQL->Text = strSQL;
+        pADOQuery->Open();
+        if (pADOQuery == NULL)
+        {
+    		pADOQuery->Connection->BeginTrans();
+    		strSQL = "";
+			strSQL = "INSERT INTO BARCODE_VALUE (KEY_ID,PROCEDURE_ID,BARCODE,\
+					TIME,STATE,AUX) \
+					VALUES (" + String(m_nCurrentBarcodeCount) + ", \
+					" + m_ProcedureId + ", \
+					" + m_barode + ", \
+					'" + DateToStr(Date()) + "',\
+					'" + "0" + "',\
+					'" + m_AuxBarcode + "')";
+	
+			pADOQuery->Close();
+			pADOQuery->SQL->Text = strSQL;
+			pADOQuery->ExecSQL();
+			pADOQuery->Connection->CommitTrans();
 
-		delete pADOQuery;
-
-		AnsiString text = "success";
-		IdUDPServerDevice->Send(UdpClientIp, UdpClientPort, text);
-
-		m_barode = "";
-		m_AuxBarcode = "";
-		
-		dxMemDataBarcode->Append();
+			delete pADOQuery;
+	
+			AnsiString text = "success";
+			IdUDPServerDevice->Send(UdpClientIp, UdpClientPort, text);
+	
+			m_barode = "";
+			m_AuxBarcode = "";
+			
+			dxMemDataBarcode->Append();
+        }
 	}
 	else
 	{

@@ -358,7 +358,7 @@ BSTR __fastcall TidServerNet::BuildMessage(char* Buff,int Len)
             pcmMessage->SetNodeText(strPath,strValue.c_bstr());
         
             ::SysReAllocString(&strPath, L"CommonMessage/Content/ProcedureId");
-            strValue = String(pADOQuery->FieldByName("PROCESS_ID")->AsInteger);
+            strValue = pADOQuery->FieldByName("PROCEDURE_ID")->AsString;
             pcmMessage->SetNodeText(strPath,strValue.c_bstr());
         
             ::SysReAllocString(&strPath, L"CommonMessage/Content/Result");
@@ -367,6 +367,19 @@ BSTR __fastcall TidServerNet::BuildMessage(char* Buff,int Len)
             ::SysFreeString(strPath);
             
             Message = pcmMessage->get_XmlMessage();
+
+            pADOQuery->Connection->BeginTrans();
+
+            strSQL = "";
+            strSQL = "UPDATE BARCODE_VALUE SET ";
+            strSQL += "STATE='" + String(1) + "' ";
+            strSQL += " WHERE BARCODE=" + pADOQuery->FieldByName("BARCODE")->AsString + " AND PROCEDURE_ID = " + pADOQuery->FieldByName("PROCEDURE_ID")->AsString;
+
+            pADOQuery->Close();
+            pADOQuery->SQL->Text = strSQL;
+            pADOQuery->ExecSQL();
+            
+            pADOQuery->Connection->CommitTrans();
         
             break;
         }
