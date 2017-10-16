@@ -345,7 +345,7 @@ BSTR __fastcall TidServerNet::BuildMessage(char* Buff,int Len)
             pcmMessage->SetNodeText(strPath,strType.c_bstr());
         
             ::SysReAllocString(&strPath, L"CommonMessage/Header/SenderId");
-            WideString strValue = strSenderId;
+            WideString strValue = strSenderId;  
             pcmMessage->SetNodeText(strPath,strValue.c_bstr());
         
             //ProductID
