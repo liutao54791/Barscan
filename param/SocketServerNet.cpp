@@ -312,17 +312,18 @@ BSTR __fastcall TidServerNet::BuildMessage(char* Buff,int Len)
     {
         case 1:
         {
+
             String strSQL ="SELECT PROCEDURE_ID,BARCODE,TIME,STATE,AUX \
             FROM BARCODE_VALUE \
-            WHERE PROCEDURE_ID  = " + strProcedureId + " AND STATE = 0 \
-            ORDER BY DATE ASC";
+            WHERE PROCEDURE_ID = " + strProcedureId + " AND STATE = 0 \
+            ORDER BY TIME ASC";
 
             pADOQuery->Close();
             pADOQuery->SQL->Text = strSQL;
             pADOQuery->Open();
 
             pADOQuery->Last();
-
+            
             XmlMessage = "<CommonMessage>"
             "<Header>"
                 "<Type>255</Type>"
@@ -358,7 +359,7 @@ BSTR __fastcall TidServerNet::BuildMessage(char* Buff,int Len)
             pcmMessage->SetNodeText(strPath,strValue.c_bstr());
         
             ::SysReAllocString(&strPath, L"CommonMessage/Content/ProcedureId");
-            strValue = pADOQuery->FieldByName("PROCEDURE_ID")->AsString;
+            strValue = String(pADOQuery->FieldByName("PROCEDURE_ID")->AsInteger);
             pcmMessage->SetNodeText(strPath,strValue.c_bstr());
         
             ::SysReAllocString(&strPath, L"CommonMessage/Content/Result");
@@ -369,7 +370,7 @@ BSTR __fastcall TidServerNet::BuildMessage(char* Buff,int Len)
             Message = pcmMessage->get_XmlMessage();
 
             pADOQuery->Connection->BeginTrans();
-
+            
             strSQL = "";
             strSQL = "UPDATE BARCODE_VALUE SET ";
             strSQL += "STATE='" + String(1) + "' ";

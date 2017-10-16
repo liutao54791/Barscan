@@ -168,7 +168,7 @@ void THoneyWellBarcodeScanner::StartScanBarcode(int nIndex)
 	CtrlScanBuff[1] = 0x54;
 	CtrlScanBuff[2] = 0x0D;
 
-	pscComm->SendBuffer(CtrlScanBuff,3);   //16 54 0Dɨ�裬16 55 0Dֹͣ
+	pscComm->SendBuffer(CtrlScanBuff,3);   //16 54 0DÉ¨Ãè£¬16 55 0DÍ£Ö¹
 }
 //---------------------------------------------------------------------------
 void THoneyWellBarcodeScanner::StartScanBarcode()
@@ -181,7 +181,7 @@ void THoneyWellBarcodeScanner::StartScanBarcode()
 		CtrlScanBuff[1] = 0x54;
 		CtrlScanBuff[2] = 0x0D;
 
-		pscComm->SendBuffer(CtrlScanBuff,3);   //16 54 0Dɨ�裬16 55 0Dֹͣ
+		pscComm->SendBuffer(CtrlScanBuff,3);   //16 54 0DÉ¨Ãè£¬16 55 0DÍ£Ö¹
 	}
 }
 

@@ -341,7 +341,7 @@ void __fastcall TFormMain::OnBarcodeScanned(TMessage& pmMessage)
 
         String strSQL ="SELECT PROCEDURE_ID,BARCODE,TIME,STATE,AUX \
         FROM BARCODE_VALUE \
-        WHERE BARCODE  = " + m_barode;
+        WHERE BARCODE = " + m_barode;
 
         pADOQuery->Close();
         pADOQuery->SQL->Text = strSQL;
