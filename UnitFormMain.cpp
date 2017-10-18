@@ -4,6 +4,7 @@
 #pragma hdrstop
 
 #include "UnitFormMain.h"
+#include <time.h> 
 
 #include "UnitDlgScannerConfig.h"
 #include "UnitDataModuleMain.h"
@@ -298,14 +299,15 @@ void TFormMain::Start()
 	LoadBarcodeHeaders(nGroupId);
 
 	m_nCurrentBarcodeCount = 0;
+	m_pbsScanner->SetHandle((HWND)this->Handle);
 	m_pbsScanner->Init();
+	
 }
 
 //---------------------------------------------------------------------------
 void __fastcall TFormMain::OnBarcodeScanned(TMessage& pmMessage)
 {
 	PBARCODE pbBarcode = (PBARCODE)pmMessage.LParam;
-
 	String strBarcode = dxMemDataBarcode->FieldByName(String(pbBarcode->nTag))->AsString;
 	if (strBarcode != "")
 	{
@@ -315,7 +317,7 @@ void __fastcall TFormMain::OnBarcodeScanned(TMessage& pmMessage)
 	{
 		if (pbBarcode->nTag == 1)
 		{
-			m_barode = strBarcode;
+			m_barode = pbBarcode->strValue;
 		}
 		else
 		{
@@ -324,30 +326,27 @@ void __fastcall TFormMain::OnBarcodeScanned(TMessage& pmMessage)
 		m_nCurrentBarcodeCount++;
 	}
 
-	if (m_nCurrentBarcodeCount % m_nBarcodeCount)
+	if (!(m_nCurrentBarcodeCount % m_nBarcodeCount))
 	{
-		/*TTcBusCommand<SINGLE_RELAY_CONTROL_PARAM,CONTROL_RESPONSE> tbcCommand;
-		SINGLE_RELAY_CONTROL_PARAM cpParam;
-		BYTE bBuffer[128];
-		int nSize = 0;
-		tbcCommand.BuildCommand(&cpParam,bBuffer,nSize);
-		if (nSize > 0)
-		{
-			m_pcsTcpClient->Socket->SendBuf(bBuffer,nSize);
-		}*/
-
 		TADOQuery* pADOQuery = new TADOQuery(NULL);
 		pADOQuery->Connection = DataModuleMain->ADOConnectionMain;
 
-        String strSQL ="SELECT PROCEDURE_ID,BARCODE,TIME,STATE,AUX \
+		String strSQL ="SELECT PROCEDURE_ID,BARCODE,TIME,STATE,AUX \
         FROM BARCODE_VALUE \
         WHERE BARCODE = " + m_barode;
 
-        pADOQuery->Close();
+		pADOQuery->Close();
         pADOQuery->SQL->Text = strSQL;
-        pADOQuery->Open();
-        if (pADOQuery == NULL)
-        {
+		pADOQuery->Open();
+		if(pADOQuery->RecordCount == 0)
+		{
+        	time_t timep;  
+    		struct tm *p;  
+    		time(&timep);  
+			p = localtime(&timep);
+
+			String ScanTime = String(1900 + p->tm_year) + "-" + String(1+p->tm_mon) + "-" + String(p->tm_mday)
+    						+ " " + String(p->tm_hour) + ":" + String(p->tm_min) + ":" + String(p->tm_sec);
     		pADOQuery->Connection->BeginTrans();
     		strSQL = "";
 			strSQL = "INSERT INTO BARCODE_VALUE (KEY_ID,PROCEDURE_ID,BARCODE,\
@@ -355,7 +354,7 @@ void __fastcall TFormMain::OnBarcodeScanned(TMessage& pmMessage)
 					VALUES (" + String(m_nCurrentBarcodeCount) + ", \
 					" + m_ProcedureId + ", \
 					" + m_barode + ", \
-					'" + DateToStr(Date()) + "',\
+					'" + ScanTime + "',\
 					'" + "0" + "',\
 					'" + m_AuxBarcode + "')";
 	
@@ -367,13 +366,13 @@ void __fastcall TFormMain::OnBarcodeScanned(TMessage& pmMessage)
 			delete pADOQuery;
 	
 			AnsiString text = "success";
-			IdUDPServerDevice->Send(UdpClientIp, UdpClientPort, text);
+			//IdUDPServerDevice->Send(UdpClientIp, UdpClientPort, text);
 	
 			m_barode = "";
 			m_AuxBarcode = "";
 			
 			dxMemDataBarcode->Append();
-        }
+		}
 	}
 	else
 	{

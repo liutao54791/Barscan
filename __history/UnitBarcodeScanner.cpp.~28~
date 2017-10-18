@@ -1,4 +1,4 @@
-//---------------------------------------------------------------------------
+﻿//---------------------------------------------------------------------------
 
 #pragma hdrstop
 
@@ -6,22 +6,22 @@
 
 //---------------------------------------------------------------------------
 #pragma package(smart_init)
+
 //---------------------------------------------------------------------------
 TBarcodeScanner::TBarcodeScanner() : m_hWnd(NULL)
 {
-	m_plScannerList = new TList;
 	m_pslBarcodeList = new TStringList;
+	m_nScannedCount = 0;
 }
 //---------------------------------------------------------------------------
 TBarcodeScanner::~TBarcodeScanner()
 {
-	delete m_plScannerList;
 	delete m_pslBarcodeList;
 }
 //---------------------------------------------------------------------------
 int TBarcodeScanner::Init()
 {
-	OpenScanners();
+	//OpenScanners();
 }
 //---------------------------------------------------------------------------
 int TBarcodeScanner::Scan()
@@ -58,84 +58,134 @@ bool TBarcodeScanner::IsValidBarcode(String strBarcode,int nIndex)
 THoneyWellBarcodeScanner::THoneyWellBarcodeScanner()
 {
 	m_pcsMutex = new TCriticalSection();
+	m_plSerialPortList = new TList;
 }
 //---------------------------------------------------------------------------
 THoneyWellBarcodeScanner::~THoneyWellBarcodeScanner()
 {
 	CloseScanners();
 
+	ClearScanners();
+
+	delete m_plSerialPortList;
+
 	delete m_pcsMutex;
 }
 //---------------------------------------------------------------------------
 void THoneyWellBarcodeScanner::AddScanner(SCANNER_INFO siScanner)
 {
+	ISerialPort* pspSerialPort = NULL;
+	HRESULT hrRet = ::CoCreateInstance(CLSID_SerialPort,
+		NULL,
+		CLSCTX_INPROC_SERVER,
+		IID_ISerialPort,
+		(void**)&pspSerialPort);
+	String Parameter = siScanner.strParam;
 
+	AnsiString str;
+	TStringList* lstLine = new TStringList;
+	str = StringReplace(Parameter,".", "\r\n", TReplaceFlags() << rfReplaceAll);
+	lstLine->Text = str;
+	
+	pspSerialPort->Tag = siScanner.nTag;
+	//TODO: parameter
+	pspSerialPort->PortId     =  1;   //siScanner.nTag
+	pspSerialPort->Baudrate   =  9600;//lstLine->Strings[0].ToInt();
+	pspSerialPort->ByteSize   =  8;	  //lstLine->Strings[1].ToInt();
+	pspSerialPort->StopBits   =  1;   //lstLine->Strings[2].ToInt();
+	pspSerialPort->ParityMode =  __MIDL_ISerialPort_0001::pmNoParity;   //lstLine->Strings[3].ToInt();
+	pspSerialPort->Open();
+	m_plSerialPortList->Add(pspSerialPort);
+
+	delete lstLine;
+
+	TSerialPortEventSink* pesEventSink = new TSerialPortEventSink;
+	pesEventSink->OnRead = OnRead;
+	pesEventSink->Connect(pspSerialPort);
+	m_vEventSink.push_back(pesEventSink);
 }
 //---------------------------------------------------------------------------
 void THoneyWellBarcodeScanner::RemoveScanner(SCANNER_INFO siScanner)
 {
+	for (int i = 0; i < m_plSerialPortList->Count; ++i)
+	{
+		ISerialPort* pspSerialPort = (ISerialPort*)m_plSerialPortList->Items[i];
+		if (pspSerialPort->Tag != siScanner.nTag)
+			continue;
 
+        m_vEventSink.at(i)->DisConnect();
+		delete m_vEventSink.at(i);
+		m_vEventSink.at(i) = NULL;
+
+		pspSerialPort->Release();
+		m_plSerialPortList->Delete(i);
+
+		break;
+	}
 }
 //---------------------------------------------------------------------------
 void THoneyWellBarcodeScanner::ClearScanners()
 {
+	for (int i = 0; i < m_plSerialPortList->Count; ++i)
+	{
+        m_vEventSink.at(i)->DisConnect();
+		delete m_vEventSink.at(i);
+		m_vEventSink.at(i) = NULL;
 
+		ISerialPort* pspSerialPort = (ISerialPort*)m_plSerialPortList->Items[i];
+		pspSerialPort->Release();
+	}
+
+	m_plSerialPortList->Clear();
+	m_vEventSink.clear();
 }
 //---------------------------------------------------------------------------
 int THoneyWellBarcodeScanner::OpenScanners()
 {
 	CloseScanners();
 
-	for (int i = 0;i < m_plScannerList->Count; i++)
+	for (int i = 0;i < m_plSerialPortList->Count; i++)
 	{
-		ISerialPort* pscComm = (ISerialPort*)m_plScannerList->Items[i];
-		TSerialPortEventSink* pesEventSink = new TSerialPortEventSink;
-		pesEventSink->OnRead = OnRead;
-		pesEventSink->Connect(pscComm);
-		m_vEventSink.push_back(pesEventSink);
+		ISerialPort* pscComm = (ISerialPort*)m_plSerialPortList->Items[i];
 		//open
-		pscComm->Open();
+		HRESULT hs =  pscComm->Open();
+		hs = 11;
 	}
 	return 0;
 }
 //---------------------------------------------------------------------------
 void THoneyWellBarcodeScanner::CloseScanners()
 {
-	for (int i = 0;i < m_plScannerList->Count; i++)
+	for (int i = 0;i < m_plSerialPortList->Count; i++)
 	{
-		ISerialPort* pscComm = (ISerialPort*)m_plScannerList->Items[i];
+		ISerialPort* pscComm = (ISerialPort*)m_plSerialPortList->Items[i];
 		//Close
 		pscComm->Close();
-		m_vEventSink.at(i)->DisConnect();
-		delete m_vEventSink.at(i);
-		m_vEventSink.at(i) = NULL;
 	}
-
-	m_vEventSink.clear();
 }
 //---------------------------------------------------------------------------
 void THoneyWellBarcodeScanner::StartScanBarcode(int nIndex)
 {
-	ISerialPort* pscComm = (ISerialPort*)m_plScannerList->Items[nIndex];
+	ISerialPort* pscComm = (ISerialPort*)m_plSerialPortList->Items[nIndex];
 	unsigned char CtrlScanBuff[10] = {0};
 	CtrlScanBuff[0] = 0x16;
 	CtrlScanBuff[1] = 0x54;
 	CtrlScanBuff[2] = 0x0D;
 
-	pscComm->SendBuffer(CtrlScanBuff,3);   //16 54 0Dɨ�裬16 55 0Dֹͣ
+	pscComm->SendBuffer(CtrlScanBuff,3);   //16 54 0DÉ¨Ãè£¬16 55 0DÍ£Ö¹
 }
 //---------------------------------------------------------------------------
 void THoneyWellBarcodeScanner::StartScanBarcode()
 {
-	for (int i = 0; i < m_plScannerList->Count; i++)
+	for (int i = 0; i < m_plSerialPortList->Count; i++)
 	{
-		ISerialPort* pscComm = (ISerialPort*)m_plScannerList->Items[i];
+		ISerialPort* pscComm = (ISerialPort*)m_plSerialPortList->Items[i];
 		unsigned char CtrlScanBuff[10] = {0};
 		CtrlScanBuff[0] = 0x16;
 		CtrlScanBuff[1] = 0x54;
 		CtrlScanBuff[2] = 0x0D;
 
-		pscComm->SendBuffer(CtrlScanBuff,3);   //16 54 0Dɨ�裬16 55 0Dֹͣ
+		pscComm->SendBuffer(CtrlScanBuff,3);   //16 54 0DÉ¨Ãè£¬16 55 0DÍ£Ö¹
 	}
 }
 
@@ -146,9 +196,9 @@ void THoneyWellBarcodeScanner::OnRead(IUnknown* Sender,BYTE* pbData,ULONG nLengt
 
 	ISerialPort* pscComm = NULL;
 	int nIndex = 0;
-	for (nIndex = 0; nIndex < m_plScannerList->Count; nIndex++)
+	for (nIndex = 0; nIndex < m_plSerialPortList->Count; nIndex++)
 	{
-		ISerialPort* pscComm = (ISerialPort*)m_plScannerList->Items[nIndex];
+		ISerialPort* pscComm = (ISerialPort*)m_plSerialPortList->Items[nIndex];
 		if (pscComm->Tag == pSender->Tag)
 			break;
 		else
@@ -176,7 +226,7 @@ void THoneyWellBarcodeScanner::OnRead(IUnknown* Sender,BYTE* pbData,ULONG nLengt
 		m_nScannedCount++;
 		BARCODE bBarcode;
 		bBarcode.strValue = strBarcode;
-		bBarcode.strTag = String(pscComm->Tag);
+		bBarcode.nTag = pscComm->Tag;
 		UploadBarcode(bBarcode);
 	}
 	__finally

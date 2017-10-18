@@ -46,7 +46,7 @@ private:
 	virtual int OpenScanners() = 0;
 	virtual void CloseScanners() = 0;
 	virtual void StartScanBarcode(int nIndex) = 0;
-	virtual void StartScanBarcode() = 0;;
+	virtual void StartScanBarcode() = 0;
 protected:
 	vector<int> m_vBarcodeLength;
 	TStringList* m_pslBarcodeList;

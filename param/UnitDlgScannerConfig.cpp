@@ -1,4 +1,4 @@
-//---------------------------------------------------------------------------
+﻿//---------------------------------------------------------------------------
 
 #include <vcl.h>
 #pragma hdrstop
@@ -186,7 +186,7 @@ void __fastcall TDlgScannerConfig::cxButtonEditScannerClick(TObject *Sender)
 		int nRowIndex = pdcControl->FocusedRowIndex;
 		if (nRowIndex < 0)
 		{
-			ShowMessage("Ñ¡ÔñÒªÐÞ¸ÄµÄÉ¨ÂëÇ¹×é£¡");
+			ShowMessage("选择要修改的扫码枪组！");
 			return;
 		}
 		int nColIndex = cxGridScannerDBTableViewGroupGROUP_ID->Index;
@@ -212,7 +212,7 @@ void __fastcall TDlgScannerConfig::cxButtonEditScannerClick(TObject *Sender)
 		int nRowIndex = pdcControl->FocusedRowIndex;
 		if (nRowIndex < 0)
 		{
-			ShowMessage("Ñ¡ÔñÒªÐÞ¸ÄµÄÉ¨ÂëÇ¹×é£¡");
+			ShowMessage("选择要修改的扫码枪组！");
 			return;
 		}
 		int nColIndex = cxGridScannerDBTableViewScannerSCANNER_ID->Index;
@@ -253,7 +253,7 @@ void __fastcall TDlgScannerConfig::cxButtonAddBarcodeClick(TObject *Sender)
 {
 	if (cxGridScanner->FocusedView == cxGridScannerDBTableViewGroup)
 	{
-		ShowMessage("Ñ¡ÖÐ¶ÔÓ¦µÄÉ¨ÂëÇ¹£¡");
+		ShowMessage("选中对应的扫码枪！");
 		return;
 	}
 
@@ -263,7 +263,7 @@ void __fastcall TDlgScannerConfig::cxButtonAddBarcodeClick(TObject *Sender)
 
 	if (nRowIndex < 0)
 	{
-		ShowMessage("Ñ¡ÖÐ¶ÔÓ¦µÄÉ¨ÂëÇ¹£¡");
+		ShowMessage("选中对应的扫码枪！");
 		return;
 	}
 
@@ -335,7 +335,7 @@ void __fastcall TDlgScannerConfig::cxButtonRemoveBarcodeClick(TObject *Sender)
 	}
 	catch (Exception& e)
 	{
-		ShowMessage("É¾³ýÐÅÏ¢Ê§°Ü£¬´íÎó£º" + e.Message);
+		ShowMessage("删除信息失败，错误：" + e.Message);
 	}
 
 	delete pADOQuery;

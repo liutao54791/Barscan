@@ -21,7 +21,7 @@ TBarcodeScanner::~TBarcodeScanner()
 //---------------------------------------------------------------------------
 int TBarcodeScanner::Init()
 {
-	OpenScanners();
+	//OpenScanners();
 }
 //---------------------------------------------------------------------------
 int TBarcodeScanner::Scan()
@@ -82,8 +82,6 @@ void THoneyWellBarcodeScanner::AddScanner(SCANNER_INFO siScanner)
 		(void**)&pspSerialPort);
 	String Parameter = siScanner.strParam;
 
-	//TCOMISerialPort pspSerialPort = CoSerialPort::Create();
-
 	AnsiString str;
 	TStringList* lstLine = new TStringList;
 	str = StringReplace(Parameter,".", "\r\n", TReplaceFlags() << rfReplaceAll);
@@ -91,11 +89,12 @@ void THoneyWellBarcodeScanner::AddScanner(SCANNER_INFO siScanner)
 	
 	pspSerialPort->Tag = siScanner.nTag;
 	//TODO: parameter
-	pspSerialPort->Baudrate   =  lstLine->Strings[0].ToInt();
-	pspSerialPort->ByteSize   =  lstLine->Strings[1].ToInt();
-	pspSerialPort->PortId     =  lstLine->Strings[2].ToInt();
-	pspSerialPort->StopBits   =  __MIDL_ISerialPort_0002::sb1Bits;   //lstLine->Strings[2].ToInt();
+	pspSerialPort->PortId     =  1;   //siScanner.nTag
+	pspSerialPort->Baudrate   =  9600;//lstLine->Strings[0].ToInt();
+	pspSerialPort->ByteSize   =  8;	  //lstLine->Strings[1].ToInt();
+	pspSerialPort->StopBits   =  1;   //lstLine->Strings[2].ToInt();
 	pspSerialPort->ParityMode =  __MIDL_ISerialPort_0001::pmNoParity;   //lstLine->Strings[3].ToInt();
+	HRESULT hs = pspSerialPort->Open();
 	m_plSerialPortList->Add(pspSerialPort);
 
 	delete lstLine;
@@ -199,7 +198,7 @@ void THoneyWellBarcodeScanner::OnRead(IUnknown* Sender,BYTE* pbData,ULONG nLengt
 	int nIndex = 0;
 	for (nIndex = 0; nIndex < m_plSerialPortList->Count; nIndex++)
 	{
-		pscComm = (ISerialPort*)m_plSerialPortList->Items[nIndex];
+		ISerialPort* pscComm = (ISerialPort*)m_plSerialPortList->Items[nIndex];
 		if (pscComm->Tag == pSender->Tag)
 			break;
 		else
@@ -211,13 +210,13 @@ void THoneyWellBarcodeScanner::OnRead(IUnknown* Sender,BYTE* pbData,ULONG nLengt
 		return;
 	}
 
-	if (nLength != 7)
+	if (nLength != m_vBarcodeLength[nIndex])
 	{
 		StartScanBarcode(nIndex);
 		return;
 	}
 	String strBarcode( (char*)pbData,nLength);
-	//m_pslBarcodeList->Strings[nIndex] = strBarcode;
+	m_pslBarcodeList->Strings[nIndex] = strBarcode;
 
 	m_pcsMutex->Acquire();
 

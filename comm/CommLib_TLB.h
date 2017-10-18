@@ -10,16 +10,16 @@
 // ************************************************************************ //
 
 // $Rev: 52393 $
-// File generated on 2017-07-27 14:22:57 from Type Library described below.
+// File generated on 2017/10/17 14:18:17 from Type Library described below.
 
 // ************************************************************************  //
-// Type Lib: E:\workspace\C++\workspace\CPP_Library\comm\Comm\Debug\Comm.dll (1)
+// Type Lib: D:\WorkSpace\BarcodeScanner\Comm.dll (1)
 // LIBID: {85F4871C-26E9-42E7-A054-67C79CAF3A9D}
 // LCID: 0
 // Helpfile: 
 // HelpString: 
 // DepndLst: 
-//   (1) v2.0 stdole, (C:\Windows\SysWOW64\stdole2.tlb)
+//   (1) v2.0 stdole, (C:\Windows\system32\stdole2.tlb)
 // SYS_KIND: SYS_WIN32
 // ************************************************************************ //
 #ifndef   CommLib_TLBH
@@ -77,6 +77,9 @@ extern __declspec (package) const GUID GUID___MIDL_ISerialPort_0001;
 extern __declspec (package) const GUID GUID_EParityMode;
 extern __declspec (package) const GUID GUID___MIDL_ISerialPort_0002;
 extern __declspec (package) const GUID GUID_EStopBits;
+extern __declspec (package) const GUID DIID__ITcpClientSocketEvents;
+extern __declspec (package) const GUID IID_ITcpClientSocket;
+extern __declspec (package) const GUID CLSID_TcpClientSocket;
 
 // *********************************************************************//
 // Forward declaration of types defined in TypeLibrary                    
@@ -89,6 +92,12 @@ typedef TComInterface<_ISerialPortEvents, &DIID__ISerialPortEvents> _ISerialPort
 interface DECLSPEC_UUID("{FDEC8B1F-1004-4DF5-AAAA-6A99D6AE3C00}") ISerialPort;
 typedef TComInterface<ISerialPort, &IID_ISerialPort> ISerialPortPtr;
 
+interface DECLSPEC_UUID("{23689734-AB52-4C8F-BAF2-796D446D4491}") _ITcpClientSocketEvents;
+typedef TComInterface<_ITcpClientSocketEvents, &DIID__ITcpClientSocketEvents> _ITcpClientSocketEventsPtr;
+
+interface DECLSPEC_UUID("{95340789-564B-4833-A8EC-4D69E58194BD}") ITcpClientSocket;
+typedef TComInterface<ITcpClientSocket, &IID_ITcpClientSocket> ITcpClientSocketPtr;
+
 
 // *********************************************************************//
 // Declaration of CoClasses defined in Type Library                       
@@ -100,8 +109,11 @@ typedef TComInterface<ISerialPort, &IID_ISerialPort> ISerialPortPtr;
 // *********************************************************************//
 typedef ISerialPort SerialPort;
 typedef ISerialPortPtr SerialPortPtr;
+typedef ITcpClientSocket TcpClientSocket;
+typedef ITcpClientSocketPtr TcpClientSocketPtr;
 
 #define LIBID_OF_SerialPort (&LIBID_CommLib)
+#define LIBID_OF_TcpClientSocket (&LIBID_CommLib)
 
 // *********************************************************************//
 // Declaration of Aliases defined in Type Library                         
@@ -262,6 +274,97 @@ public:
 
 };
 
+// *********************************************************************//
+// Interface: _ITcpClientSocketEvents
+// Flags:     (4096) Dispatchable
+// GUID:      {23689734-AB52-4C8F-BAF2-796D446D4491}
+// *********************************************************************//
+interface _ITcpClientSocketEvents : public TDispWrapper<IDispatch>
+{
+  HRESULT __fastcall OnRead(LPUNKNOWN Sender/*[in]*/, unsigned_char* pbBuffer/*[in]*/, 
+                            unsigned_long nLength/*[in]*/)
+  {
+    _TDispID _dispid(/* OnRead */ DISPID(1));
+    TAutoArgs<3> _args;
+    _args[1] = Sender /*[VT_UNKNOWN:0]*/;
+    _args[2] = pbBuffer /*[VT_UI1:1]*/;
+    _args[3] = nLength /*[VT_UI4:0]*/;
+    return OleFunction(_dispid, _args);
+  }
+
+  HRESULT __fastcall OnStatus(LPUNKNOWN Sender/*[in]*/, unsigned_long nErrorCode/*[in]*/, 
+                              BSTR strErrorInfo/*[in]*/)
+  {
+    _TDispID _dispid(/* OnStatus */ DISPID(2));
+    TAutoArgs<3> _args;
+    _args[1] = Sender /*[VT_UNKNOWN:0]*/;
+    _args[2] = nErrorCode /*[VT_UI4:0]*/;
+    _args[3] = strErrorInfo /*[VT_BSTR:0]*/;
+    return OleFunction(_dispid, _args);
+  }
+
+
+};
+// *********************************************************************//
+// Interface: ITcpClientSocket
+// Flags:     (4544) Dual NonExtensible OleAutomation Dispatchable
+// GUID:      {95340789-564B-4833-A8EC-4D69E58194BD}
+// *********************************************************************//
+interface ITcpClientSocket  : public IDispatch
+{
+public:
+  // [1] server host name
+  virtual HRESULT STDMETHODCALLTYPE get_HostName(BSTR* pVal/*[out,retval]*/) = 0;
+  // [1] server host name
+  virtual HRESULT STDMETHODCALLTYPE set_HostName(BSTR pVal/*[in]*/) = 0;
+  // [2] Server port
+  virtual HRESULT STDMETHODCALLTYPE get_Port(unsigned_short* pVal/*[out,retval]*/) = 0;
+  // [2] Server port
+  virtual HRESULT STDMETHODCALLTYPE set_Port(unsigned_short pVal/*[in]*/) = 0;
+  // [3] Connect to host
+  virtual HRESULT STDMETHODCALLTYPE Connect(void) = 0;
+  // [4] disconnect to server
+  virtual HRESULT STDMETHODCALLTYPE Disconnect(void) = 0;
+  // [5] Send data
+  virtual HRESULT STDMETHODCALLTYPE SendBuffer(unsigned_char* pbBuffer/*[in]*/, 
+                                               unsigned_long nSize/*[in]*/) = 0;
+  // [6] Tag
+  virtual HRESULT STDMETHODCALLTYPE get_Tag(unsigned_long* pVal/*[out,retval]*/) = 0;
+  // [6] Tag
+  virtual HRESULT STDMETHODCALLTYPE set_Tag(unsigned_long pVal/*[in]*/) = 0;
+
+#if !defined(__TLB_NO_INTERFACE_WRAPPERS)
+
+  BSTR __fastcall get_HostName(void)
+  {
+    BSTR pVal = 0;
+    OLECHECK(this->get_HostName((BSTR*)&pVal));
+    return pVal;
+  }
+
+  unsigned_short __fastcall get_Port(void)
+  {
+    unsigned_short pVal;
+    OLECHECK(this->get_Port((unsigned_short*)&pVal));
+    return pVal;
+  }
+
+  unsigned_long __fastcall get_Tag(void)
+  {
+    unsigned_long pVal;
+    OLECHECK(this->get_Tag((unsigned_long*)&pVal));
+    return pVal;
+  }
+
+
+  __property   BSTR            HostName = {read = get_HostName, write = set_HostName};
+  __property   unsigned_short  Port = {read = get_Port, write = set_Port};
+  __property   unsigned_long   Tag = {read = get_Tag, write = set_Tag};
+
+#endif //   __TLB_NO_INTERFACE_WRAPPERS
+
+};
+
 #if !defined(__TLB_NO_INTERFACE_WRAPPERS)
 // *********************************************************************//
 // DispIntf:  _ISerialPortEvents
@@ -408,6 +511,122 @@ public:
   __property   long            Tag = {read = get_Tag, write = set_Tag};
 };
 typedef ISerialPortDispT<ISerialPort> ISerialPortDisp;
+
+// *********************************************************************//
+// DispIntf:  _ITcpClientSocketEvents
+// Flags:     (4096) Dispatchable
+// GUID:      {23689734-AB52-4C8F-BAF2-796D446D4491}
+// *********************************************************************//
+template <class T>
+class _ITcpClientSocketEventsDispT : public TAutoDriver<_ITcpClientSocketEvents>
+{
+public:
+  _ITcpClientSocketEventsDispT(){}
+
+  void Attach(LPUNKNOWN punk)
+  { m_Dispatch = static_cast<T*>(punk); }
+
+  HRESULT         __fastcall OnRead(LPUNKNOWN Sender/*[in]*/, unsigned_char* pbBuffer/*[in]*/, 
+                                    unsigned_long nLength/*[in]*/);
+  HRESULT         __fastcall OnStatus(LPUNKNOWN Sender/*[in]*/, unsigned_long nErrorCode/*[in]*/, 
+                                      BSTR strErrorInfo/*[in]*/);
+
+};
+typedef _ITcpClientSocketEventsDispT<_ITcpClientSocketEvents> _ITcpClientSocketEventsDisp;
+
+// *********************************************************************//
+// SmartIntf: TCOMITcpClientSocket
+// Interface: ITcpClientSocket
+// *********************************************************************//
+template <class T /* ITcpClientSocket */ >
+class TCOMITcpClientSocketT : public TComInterface<ITcpClientSocket>, public TComInterfaceBase<IUnknown>
+{
+public:
+  TCOMITcpClientSocketT() {}
+  TCOMITcpClientSocketT(ITcpClientSocket *intf, bool addRef = false) : TComInterface<ITcpClientSocket>(intf, addRef) {}
+  TCOMITcpClientSocketT(const TCOMITcpClientSocketT& src) : TComInterface<ITcpClientSocket>(src) {}
+  TCOMITcpClientSocketT& operator=(const TCOMITcpClientSocketT& src) { Bind(src, true); return *this;}
+
+  HRESULT         __fastcall get_HostName(BSTR* pVal/*[out,retval]*/);
+  BSTR            __fastcall get_HostName(void);
+  HRESULT         __fastcall set_HostName(BSTR pVal/*[in]*/);
+  HRESULT         __fastcall get_Port(unsigned_short* pVal/*[out,retval]*/);
+  unsigned_short  __fastcall get_Port(void);
+  HRESULT         __fastcall set_Port(unsigned_short pVal/*[in]*/);
+  HRESULT         __fastcall Connect(void);
+  HRESULT         __fastcall Disconnect(void);
+  HRESULT         __fastcall SendBuffer(unsigned_char* pbBuffer/*[in]*/, unsigned_long nSize/*[in]*/);
+  HRESULT         __fastcall get_Tag(unsigned_long* pVal/*[out,retval]*/);
+  unsigned_long   __fastcall get_Tag(void);
+  HRESULT         __fastcall set_Tag(unsigned_long pVal/*[in]*/);
+
+  __property   BSTR            HostName = {read = get_HostName, write = set_HostName};
+  __property   unsigned_short  Port = {read = get_Port, write = set_Port};
+  __property   unsigned_long   Tag = {read = get_Tag, write = set_Tag};
+};
+typedef TCOMITcpClientSocketT<ITcpClientSocket> TCOMITcpClientSocket;
+
+// *********************************************************************//
+// DispIntf:  ITcpClientSocket
+// Flags:     (4544) Dual NonExtensible OleAutomation Dispatchable
+// GUID:      {95340789-564B-4833-A8EC-4D69E58194BD}
+// *********************************************************************//
+template<class T>
+class ITcpClientSocketDispT : public TAutoDriver<ITcpClientSocket>
+{
+public:
+  ITcpClientSocketDispT(){}
+
+  ITcpClientSocketDispT(ITcpClientSocket *pintf)
+  {
+    TAutoDriver<ITcpClientSocket>::Bind(pintf, false);
+  }
+
+  ITcpClientSocketDispT(ITcpClientSocketPtr pintf)
+  {
+    TAutoDriver<ITcpClientSocket>::Bind(pintf, true);
+  }
+
+  ITcpClientSocketDispT& operator=(ITcpClientSocket *pintf)
+  {
+    TAutoDriver<ITcpClientSocket>::Bind(pintf, false);
+    return *this;
+  }
+
+  ITcpClientSocketDispT& operator=(ITcpClientSocketPtr pintf)
+  {
+    TAutoDriver<ITcpClientSocket>::Bind(pintf, true);
+    return *this;
+  }
+
+  HRESULT BindDefault()
+  {
+    return OLECHECK(Bind(CLSID_TcpClientSocket));
+  }
+
+  HRESULT BindRunning()
+  {
+    return BindToActive(CLSID_TcpClientSocket);
+  }
+
+  HRESULT         __fastcall get_HostName(BSTR* pVal/*[out,retval]*/);
+  BSTR            __fastcall get_HostName(void);
+  HRESULT         __fastcall set_HostName(BSTR pVal/*[in]*/);
+  HRESULT         __fastcall get_Port(unsigned_short* pVal/*[out,retval]*/);
+  unsigned_short  __fastcall get_Port(void);
+  HRESULT         __fastcall set_Port(unsigned_short pVal/*[in]*/);
+  HRESULT         __fastcall Connect();
+  HRESULT         __fastcall Disconnect();
+  HRESULT         __fastcall SendBuffer(unsigned_char* pbBuffer/*[in]*/, unsigned_long nSize/*[in]*/);
+  HRESULT         __fastcall get_Tag(unsigned_long* pVal/*[out,retval]*/);
+  unsigned_long   __fastcall get_Tag(void);
+  HRESULT         __fastcall set_Tag(unsigned_long pVal/*[in]*/);
+
+  __property   BSTR            HostName = {read = get_HostName, write = set_HostName};
+  __property   unsigned_short  Port = {read = get_Port, write = set_Port};
+  __property   unsigned_long   Tag = {read = get_Tag, write = set_Tag};
+};
+typedef ITcpClientSocketDispT<ITcpClientSocket> ITcpClientSocketDisp;
 
 // *********************************************************************//
 // DispIntf:  _ISerialPortEvents
@@ -790,6 +1009,221 @@ ISerialPortDispT<T>::set_Tag(long pVal/*[in]*/)
 }
 
 // *********************************************************************//
+// DispIntf:  _ITcpClientSocketEvents
+// Flags:     (4096) Dispatchable
+// GUID:      {23689734-AB52-4C8F-BAF2-796D446D4491}
+// *********************************************************************//
+template <class T> HRESULT __fastcall
+_ITcpClientSocketEventsDispT<T>::OnRead(LPUNKNOWN Sender/*[in]*/, unsigned_char* pbBuffer/*[in]*/, 
+                                        unsigned_long nLength/*[in]*/)
+{
+  _TDispID _dispid(/* OnRead */ DISPID(1));
+  TAutoArgs<3> _args;
+  _args[1] = Sender /*[VT_UNKNOWN:0]*/;
+  _args[2] = pbBuffer /*[VT_UI1:1]*/;
+  _args[3] = nLength /*[VT_UI4:0]*/;
+  return OleFunction(_dispid, _args);
+}
+
+template <class T> HRESULT __fastcall
+_ITcpClientSocketEventsDispT<T>::OnStatus(LPUNKNOWN Sender/*[in]*/, unsigned_long nErrorCode/*[in]*/
+                                          , BSTR strErrorInfo/*[in]*/)
+{
+  _TDispID _dispid(/* OnStatus */ DISPID(2));
+  TAutoArgs<3> _args;
+  _args[1] = Sender /*[VT_UNKNOWN:0]*/;
+  _args[2] = nErrorCode /*[VT_UI4:0]*/;
+  _args[3] = strErrorInfo /*[VT_BSTR:0]*/;
+  return OleFunction(_dispid, _args);
+}
+
+// *********************************************************************//
+// SmartIntf: TCOMITcpClientSocket
+// Interface: ITcpClientSocket
+// *********************************************************************//
+template <class T> HRESULT __fastcall
+TCOMITcpClientSocketT<T>::get_HostName(BSTR* pVal/*[out,retval]*/)
+{
+  return (*this)->get_HostName(pVal);
+}
+
+template <class T> BSTR __fastcall
+TCOMITcpClientSocketT<T>::get_HostName(void)
+{
+  BSTR pVal = 0;
+  OLECHECK(this->get_HostName((BSTR*)&pVal));
+  return pVal;
+}
+
+template <class T> HRESULT __fastcall
+TCOMITcpClientSocketT<T>::set_HostName(BSTR pVal/*[in]*/)
+{
+  return (*this)->set_HostName(pVal);
+}
+
+template <class T> HRESULT __fastcall
+TCOMITcpClientSocketT<T>::get_Port(unsigned_short* pVal/*[out,retval]*/)
+{
+  return (*this)->get_Port(pVal);
+}
+
+template <class T> unsigned_short __fastcall
+TCOMITcpClientSocketT<T>::get_Port(void)
+{
+  unsigned_short pVal;
+  OLECHECK(this->get_Port((unsigned_short*)&pVal));
+  return pVal;
+}
+
+template <class T> HRESULT __fastcall
+TCOMITcpClientSocketT<T>::set_Port(unsigned_short pVal/*[in]*/)
+{
+  return (*this)->set_Port(pVal);
+}
+
+template <class T> HRESULT __fastcall
+TCOMITcpClientSocketT<T>::Connect(void)
+{
+  return (*this)->Connect();
+}
+
+template <class T> HRESULT __fastcall
+TCOMITcpClientSocketT<T>::Disconnect(void)
+{
+  return (*this)->Disconnect();
+}
+
+template <class T> HRESULT __fastcall
+TCOMITcpClientSocketT<T>::SendBuffer(unsigned_char* pbBuffer/*[in]*/, unsigned_long nSize/*[in]*/)
+{
+  return (*this)->SendBuffer(pbBuffer, nSize);
+}
+
+template <class T> HRESULT __fastcall
+TCOMITcpClientSocketT<T>::get_Tag(unsigned_long* pVal/*[out,retval]*/)
+{
+  return (*this)->get_Tag(pVal);
+}
+
+template <class T> unsigned_long __fastcall
+TCOMITcpClientSocketT<T>::get_Tag(void)
+{
+  unsigned_long pVal;
+  OLECHECK(this->get_Tag((unsigned_long*)&pVal));
+  return pVal;
+}
+
+template <class T> HRESULT __fastcall
+TCOMITcpClientSocketT<T>::set_Tag(unsigned_long pVal/*[in]*/)
+{
+  return (*this)->set_Tag(pVal);
+}
+
+// *********************************************************************//
+// DispIntf:  ITcpClientSocket
+// Flags:     (4544) Dual NonExtensible OleAutomation Dispatchable
+// GUID:      {95340789-564B-4833-A8EC-4D69E58194BD}
+// *********************************************************************//
+template <class T> HRESULT __fastcall
+ITcpClientSocketDispT<T>::get_HostName(BSTR* pVal/*[out,retval]*/)
+{
+  _TDispID _dispid(*this, OLETEXT("HostName"), DISPID(1));
+  TAutoArgs<0> _args;
+  return OutRetValSetterPtr(pVal /*[VT_BSTR:1]*/, _args, OlePropertyGet(_dispid, _args));
+}
+
+template <class T> BSTR __fastcall
+ITcpClientSocketDispT<T>::get_HostName(void)
+{
+  BSTR pVal;
+  this->get_HostName((BSTR*)&pVal);
+  return pVal;
+}
+
+template <class T> HRESULT __fastcall
+ITcpClientSocketDispT<T>::set_HostName(BSTR pVal/*[in]*/)
+{
+  _TDispID _dispid(*this, OLETEXT("HostName"), DISPID(1));
+  TAutoArgs<1> _args;
+  _args[1] = pVal /*[VT_BSTR:0]*/;
+  return OlePropertyPut(_dispid, _args);
+}
+
+template <class T> HRESULT __fastcall
+ITcpClientSocketDispT<T>::get_Port(unsigned_short* pVal/*[out,retval]*/)
+{
+  _TDispID _dispid(*this, OLETEXT("Port"), DISPID(2));
+  TAutoArgs<0> _args;
+  return OutRetValSetterPtr(pVal /*[VT_UI2:1]*/, _args, OlePropertyGet(_dispid, _args));
+}
+
+template <class T> unsigned_short __fastcall
+ITcpClientSocketDispT<T>::get_Port(void)
+{
+  unsigned_short pVal;
+  this->get_Port((unsigned_short*)&pVal);
+  return pVal;
+}
+
+template <class T> HRESULT __fastcall
+ITcpClientSocketDispT<T>::set_Port(unsigned_short pVal/*[in]*/)
+{
+  _TDispID _dispid(*this, OLETEXT("Port"), DISPID(2));
+  TAutoArgs<1> _args;
+  _args[1] = pVal /*[VT_UI2:0]*/;
+  return OlePropertyPut(_dispid, _args);
+}
+
+template <class T> HRESULT __fastcall
+ITcpClientSocketDispT<T>::Connect()
+{
+  _TDispID _dispid(*this, OLETEXT("Connect"), DISPID(3));
+  return OleFunction(_dispid);
+}
+
+template <class T> HRESULT __fastcall
+ITcpClientSocketDispT<T>::Disconnect()
+{
+  _TDispID _dispid(*this, OLETEXT("Disconnect"), DISPID(4));
+  return OleFunction(_dispid);
+}
+
+template <class T> HRESULT __fastcall
+ITcpClientSocketDispT<T>::SendBuffer(unsigned_char* pbBuffer/*[in]*/, unsigned_long nSize/*[in]*/)
+{
+  _TDispID _dispid(*this, OLETEXT("SendBuffer"), DISPID(5));
+  TAutoArgs<2> _args;
+  _args[1] = pbBuffer /*[VT_UI1:1]*/;
+  _args[2] = nSize /*[VT_UI4:0]*/;
+  return OleFunction(_dispid, _args);
+}
+
+template <class T> HRESULT __fastcall
+ITcpClientSocketDispT<T>::get_Tag(unsigned_long* pVal/*[out,retval]*/)
+{
+  _TDispID _dispid(*this, OLETEXT("Tag"), DISPID(6));
+  TAutoArgs<0> _args;
+  return OutRetValSetterPtr(pVal /*[VT_UI4:1]*/, _args, OlePropertyGet(_dispid, _args));
+}
+
+template <class T> unsigned_long __fastcall
+ITcpClientSocketDispT<T>::get_Tag(void)
+{
+  unsigned_long pVal;
+  this->get_Tag((unsigned_long*)&pVal);
+  return pVal;
+}
+
+template <class T> HRESULT __fastcall
+ITcpClientSocketDispT<T>::set_Tag(unsigned_long pVal/*[in]*/)
+{
+  _TDispID _dispid(*this, OLETEXT("Tag"), DISPID(6));
+  TAutoArgs<1> _args;
+  _args[1] = pVal /*[VT_UI4:0]*/;
+  return OlePropertyPut(_dispid, _args);
+}
+
+// *********************************************************************//
 // The following typedefs expose classes (named CoCoClassName) that       
 // provide static Create() and CreateRemote(LPWSTR machineName) methods   
 // for creating an instance of an exposed object. These functions can     
@@ -803,6 +1237,13 @@ ISerialPortDispT<T>::set_Tag(long pVal/*[in]*/)
 // Interface: TCOMISerialPort
 // *********************************************************************//
 typedef TCoClassCreatorT<TCOMISerialPort, ISerialPort, &CLSID_SerialPort, &IID_ISerialPort> CoSerialPort;
+
+// *********************************************************************//
+// COCLASS DEFAULT INTERFACE CREATOR
+// CoClass  : TcpClientSocket
+// Interface: TCOMITcpClientSocket
+// *********************************************************************//
+typedef TCoClassCreatorT<TCOMITcpClientSocket, ITcpClientSocket, &CLSID_TcpClientSocket, &IID_ITcpClientSocket> CoTcpClientSocket;
 #endif  //   __TLB_NO_INTERFACE_WRAPPERS
 
 
@@ -866,6 +1307,69 @@ TEvents_SerialPort<T>::Fire_OnStatus(LPUNKNOWN Sender, unsigned_long nErrorCode,
   pT->Unlock();
 }
 
+// *********************************************************************//
+// CONNECTIONPOINT/EVENT PROXY
+// CoClass         : TcpClientSocket
+// Event Interface : _ITcpClientSocketEvents
+// *********************************************************************//
+template <class T>
+class TEvents_TcpClientSocket : public IConnectionPointImpl<T,
+                                                 &DIID__ITcpClientSocketEvents,
+#if !defined(_TLB_DYNAMIC_CONNECTIONPOINT_ARRAY)
+                                                 CComUnkArray<CONNECTIONPOINT_ARRAY_SIZE> >
+#else
+                                                 CComDynamicArray>
+#endif
+{
+public:
+  HRESULT         Fire_OnRead(LPUNKNOWN Sender, unsigned_char* pbBuffer, unsigned_long nLength);
+  HRESULT         Fire_OnStatus(LPUNKNOWN Sender, unsigned_long nErrorCode, BSTR strErrorInfo);
+protected:
+  _ITcpClientSocketEventsDisp m_EventIntfObj;
+};
+
+template <class T> HRESULT
+TEvents_TcpClientSocket<T>::Fire_OnRead(LPUNKNOWN Sender, unsigned_char* pbBuffer, 
+                                        unsigned_long nLength)
+{
+  T * pT = (T*)this;
+  pT->Lock();
+  IUnknown ** pp = m_vec.begin();
+  while (pp < m_vec.end())
+  {
+    if (*pp != NULL)
+    {
+      m_EventIntfObj.Attach(*pp);
+      m_EventIntfObj.OnRead(Sender, pbBuffer, nLength);
+      m_EventIntfObj.Attach(0);
+    }
+    pp++;
+  }
+  pT->Unlock();
+  return S_OK;
+}
+
+template <class T> HRESULT
+TEvents_TcpClientSocket<T>::Fire_OnStatus(LPUNKNOWN Sender, unsigned_long nErrorCode, 
+                                          BSTR strErrorInfo)
+{
+  T * pT = (T*)this;
+  pT->Lock();
+  IUnknown ** pp = m_vec.begin();
+  while (pp < m_vec.end())
+  {
+    if (*pp != NULL)
+    {
+      m_EventIntfObj.Attach(*pp);
+      m_EventIntfObj.OnStatus(Sender, nErrorCode, strErrorInfo);
+      m_EventIntfObj.Attach(0);
+    }
+    pp++;
+  }
+  pT->Unlock();
+  return S_OK;
+}
+
 #endif    //   __TLB_NO_EVENT_WRAPPERS
 
 #if !defined(__TLB_NO_EVENT_WRAPPERS) && defined(USING_DAX)
@@ -904,6 +1408,47 @@ public:
           dispInvoker.OnStatus(Sender, nErrorCode, strErrorInfo);
       }
     }
+  }
+
+};
+
+// *********************************************************************//
+// CONNECTIONPOINT/EVENT PROXY
+// CoClass         : TcpClientSocket
+// Event Interface : _ITcpClientSocketEvents
+// *********************************************************************//
+template <typename T>
+class ITcpClientSocket_EventsDispatcher : public IUnknown
+{
+public:
+  HRESULT Fire_OnRead(LPUNKNOWN Sender, unsigned_char* pbBuffer, unsigned_long nLength)
+  {
+    _ITcpClientSocketEventsDisp dispInvoker;
+    T* pClass = static_cast<T*>(this);
+    TConnectionPointSinkList<T> cpsl(pClass->ConnectionPoint);
+    if (cpsl.HasConnectionPoint()) {
+      for (int i=0; i<cpsl.GetCount(); i++) {
+        _di_IInterface punk;
+        if (cpsl.GetSink(i, punk) && (dispInvoker.Bind(punk)==S_OK))
+          dispInvoker.OnRead(Sender, pbBuffer, nLength);
+      }
+    }
+    return S_OK;
+  }
+
+  HRESULT Fire_OnStatus(LPUNKNOWN Sender, unsigned_long nErrorCode, BSTR strErrorInfo)
+  {
+    _ITcpClientSocketEventsDisp dispInvoker;
+    T* pClass = static_cast<T*>(this);
+    TConnectionPointSinkList<T> cpsl(pClass->ConnectionPoint);
+    if (cpsl.HasConnectionPoint()) {
+      for (int i=0; i<cpsl.GetCount(); i++) {
+        _di_IInterface punk;
+        if (cpsl.GetSink(i, punk) && (dispInvoker.Bind(punk)==S_OK))
+          dispInvoker.OnStatus(Sender, nErrorCode, strErrorInfo);
+      }
+    }
+    return S_OK;
   }
 
 };
